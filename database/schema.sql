@@ -1,0 +1,126 @@
+-- BIOPOWER AI-IoT Plant Health Monitoring System
+-- MySQL 8 Database Schema
+
+CREATE DATABASE IF NOT EXISTS biopower_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE biopower_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    mobile VARCHAR(20),
+    password VARCHAR(255) NOT NULL,
+    role ENUM('SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR') NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE', 'DISABLED') NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS plants (
+    plant_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_name VARCHAR(255) NOT NULL,
+    plant_type ENUM('BIOGAS', 'BIO_CNG', 'SANITATION', 'STP', 'ORGANIC_WASTE', 'WASTE_TO_ENERGY') NOT NULL,
+    location VARCHAR(500),
+    capacity DOUBLE,
+    feedstock_type VARCHAR(255),
+    installation_date DATE,
+    status ENUM('ACTIVE', 'INACTIVE', 'MAINTENANCE', 'OFFLINE') DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_plants (
+    user_id BIGINT NOT NULL,
+    plant_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, plant_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (plant_id) REFERENCES plants(plant_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sensor_nodes (
+    node_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    node_name VARCHAR(255) NOT NULL,
+    sensor_type ENUM('PH', 'TEMPERATURE', 'PRESSURE', 'GAS_FLOW', 'METHANE', 'CARBON_DIOXIDE', 'HYDROGEN_SULFIDE', 'AMMONIA', 'HUMIDITY', 'LIQUID_LEVEL') NOT NULL,
+    firmware_version VARCHAR(50),
+    battery_level INT,
+    signal_strength INT,
+    status ENUM('ACTIVE', 'INACTIVE', 'FAULTY', 'OFFLINE') DEFAULT 'ACTIVE',
+    last_reading_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (plant_id) REFERENCES plants(plant_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sensor_readings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    node_id BIGINT NOT NULL,
+    sensor_type ENUM('PH', 'TEMPERATURE', 'PRESSURE', 'GAS_FLOW', 'METHANE', 'CARBON_DIOXIDE', 'HYDROGEN_SULFIDE', 'AMMONIA', 'HUMIDITY', 'LIQUID_LEVEL') NOT NULL,
+    value DOUBLE NOT NULL,
+    recorded_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_reading_plant_time (plant_id, recorded_at),
+    INDEX idx_reading_node_time (node_id, recorded_at)
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    node_id BIGINT,
+    sensor_type ENUM('PH', 'TEMPERATURE', 'PRESSURE', 'GAS_FLOW', 'METHANE', 'CARBON_DIOXIDE', 'HYDROGEN_SULFIDE', 'AMMONIA', 'HUMIDITY', 'LIQUID_LEVEL'),
+    title VARCHAR(255) NOT NULL,
+    message TEXT,
+    severity ENUM('CRITICAL', 'WARNING', 'INFORMATION') NOT NULL,
+    status ENUM('ACTIVE', 'ACKNOWLEDGED', 'RESOLVED') DEFAULT 'ACTIVE',
+    threshold_value DOUBLE,
+    actual_value DOUBLE,
+    acknowledged_by BIGINT,
+    acknowledged_at TIMESTAMP NULL,
+    resolved_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS ai_recommendations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    issue_type ENUM('ACIDIFICATION', 'OVERFEEDING', 'UNDERFEEDING', 'GAS_YIELD_REDUCTION', 'SENSOR_FAILURE', 'PLANT_INSTABILITY') NOT NULL,
+    recommendation TEXT NOT NULL,
+    health_score INT,
+    health_status ENUM('EXCELLENT', 'GOOD', 'AVERAGE', 'POOR', 'CRITICAL'),
+    acknowledged BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS predictive_maintenance (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    equipment_type ENUM('PUMP', 'BLOWER', 'AGITATOR', 'COMPRESSOR', 'SENSOR') NOT NULL,
+    equipment_name VARCHAR(255) NOT NULL,
+    remaining_useful_life_days INT,
+    estimated_failure_date DATE,
+    health_percentage DOUBLE,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT,
+    report_type ENUM('DAILY', 'WEEKLY', 'MONTHLY', 'PLANT_SUMMARY', 'GAS_PRODUCTION', 'ALERTS', 'PLANT_HEALTH') NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500),
+    file_format VARCHAR(10),
+    generated_by BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS system_settings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT,
+    category VARCHAR(50),
+    description VARCHAR(500),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

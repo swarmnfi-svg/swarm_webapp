@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+target/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Reports output
+reports/
+
+# Docker volumes
+mysql_data/

@@ -1,0 +1,63 @@
+package com.biopower.controller;
+
+import com.biopower.dto.request.SensorNodeRequest;
+import com.biopower.dto.response.ApiResponse;
+import com.biopower.dto.response.SensorNodeResponse;
+import com.biopower.service.SensorNodeService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/sensor-nodes")
+@RequiredArgsConstructor
+public class SensorNodeController {
+
+    private final SensorNodeService sensorNodeService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<SensorNodeResponse>>> getAllNodes() {
+        return ResponseEntity.ok(ApiResponse.success(sensorNodeService.getAllNodes()));
+    }
+
+    @GetMapping("/plant/{plantId}")
+    public ResponseEntity<ApiResponse<List<SensorNodeResponse>>> getNodesByPlant(@PathVariable Long plantId) {
+        return ResponseEntity.ok(ApiResponse.success(sensorNodeService.getNodesByPlant(plantId)));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<SensorNodeResponse>> getNode(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(sensorNodeService.getNodeById(id)));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<SensorNodeResponse>> createNode(@Valid @RequestBody SensorNodeRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Sensor node registered", sensorNodeService.createNode(request)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SensorNodeResponse>> updateNode(
+            @PathVariable Long id, @Valid @RequestBody SensorNodeRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Sensor node updated", sensorNodeService.updateNode(id, request)));
+    }
+
+    @PatchMapping("/{id}/toggle")
+    public ResponseEntity<ApiResponse<SensorNodeResponse>> toggleNode(
+            @PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        boolean enable = body.getOrDefault("enable", true);
+        return ResponseEntity.ok(ApiResponse.success(
+                enable ? "Node enabled" : "Node disabled", sensorNodeService.toggleNode(id, enable)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteNode(@PathVariable Long id) {
+        sensorNodeService.deleteNode(id);
+        return ResponseEntity.ok(ApiResponse.success("Sensor node deleted", null));
+    }
+}
