@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box, AppBar, Toolbar, Typography, IconButton, Badge, Drawer,
@@ -13,9 +13,9 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { notificationAPI } from '../../services/api';
 import Logo from '../common/Logo';
-import { useEffect } from 'react';
 
 const DRAWER_WIDTH = 260;
+const NAV_BG = '#1e2430';
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
@@ -53,46 +53,90 @@ export default function MainLayout() {
   }, []);
 
   const filteredMenu = menuItems.filter(item => item.roles.includes(user?.role));
+  const currentPage = menuItems.find(item => item.path === location.pathname)?.text || 'Dashboard';
 
-  const drawer = (
-    <Box>
-      <Box sx={{ p: 2, bgcolor: '#1e2430' }}>
-        <Logo height={44} />
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', display: 'block', mt: 0.5 }}>
-          Plant Health Monitoring
-        </Typography>
-      </Box>
-      <List sx={{ pt: 1 }}>
-        {filteredMenu.map((item) => (
-          <ListItem key={item.path} disablePadding>
+  const navList = (
+    <List sx={{ flex: 1, py: 1, px: 1 }}>
+      {filteredMenu.map((item) => {
+        const selected = location.pathname === item.path;
+        return (
+          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
             <ListItemButton
-              selected={location.pathname === item.path}
+              selected={selected}
               onClick={() => { navigate(item.path); setMobileOpen(false); }}
-              sx={{ '&.Mui-selected': { bgcolor: 'primary.light', color: 'white', '& .MuiListItemIcon-root': { color: 'white' } } }}
+              sx={{
+                borderRadius: 2,
+                '&.Mui-selected': {
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  '& .MuiListItemIcon-root': { color: 'white' },
+                },
+                '&:hover': { bgcolor: selected ? 'primary.dark' : 'action.hover' },
+              }}
             >
-              <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : 'primary.main' }}>
+              <ListItemIcon sx={{ color: selected ? 'white' : 'text.secondary', minWidth: 40 }}>
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: selected ? 600 : 400 }}
+              />
             </ListItemButton>
           </ListItem>
-        ))}
-      </List>
+        );
+      })}
+    </List>
+  );
+
+  const drawerContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.paper' }}>
+      {navList}
+      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', mt: 'auto' }}>
+        <Typography variant="caption" color="text.secondary" display="block">
+          Logged in as
+        </Typography>
+        <Typography variant="body2" fontWeight={600} noWrap>
+          {user?.name}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {user?.role?.replace('_', ' ')}
+        </Typography>
+      </Box>
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1, bgcolor: '#1e2430' }}>
-        <Toolbar>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          zIndex: theme.zIndex.drawer + 1,
+          bgcolor: NAV_BG,
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 }, gap: 1 }}>
           {isMobile && (
-            <IconButton color="inherit" edge="start" onClick={() => setMobileOpen(!mobileOpen)} sx={{ mr: 1 }}>
+            <IconButton color="inherit" edge="start" onClick={() => setMobileOpen(!mobileOpen)}>
               <MenuIcon />
             </IconButton>
           )}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexGrow: 1 }}>
-            <Logo height={32} sx={{ display: { xs: 'none', sm: 'block' } }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Logo height={36} sx={{ flexShrink: 0 }} />
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.95)', lineHeight: 1.2 }}
+              noWrap
+            >
+              {currentPage}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ color: 'rgba(255,255,255,0.55)', display: { xs: 'none', sm: 'block' } }}
+              noWrap
+            >
               Plant Health Monitoring
             </Typography>
           </Box>
@@ -101,8 +145,8 @@ export default function MainLayout() {
               <NotifIcon />
             </Badge>
           </IconButton>
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ ml: 1 }}>
-            <Avatar sx={{ width: 36, height: 36, bgcolor: 'secondary.main' }}>
+          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <Avatar sx={{ width: 36, height: 36, bgcolor: 'secondary.main', fontSize: '0.95rem' }}>
               {user?.name?.charAt(0)}
             </Avatar>
           </IconButton>
@@ -131,18 +175,56 @@ export default function MainLayout() {
         sx={{
           width: DRAWER_WIDTH,
           flexShrink: 0,
-          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', borderRight: '1px solid #e0e0e0' },
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            boxSizing: 'border-box',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            height: '100vh',
+            top: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            pt: { xs: 0, md: '64px' },
+            bgcolor: 'background.paper',
+          },
         }}
       >
-        <Toolbar />
-        {drawer}
+        {isMobile && (
+          <Box sx={{ p: 2, bgcolor: NAV_BG }}>
+            <Logo height={40} />
+          </Box>
+        )}
+        {drawerContent}
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-        <Toolbar />
-        <Outlet />
-        <Box component="footer" sx={{ mt: 4, py: 2, textAlign: 'center', color: 'text.secondary', borderTop: '1px solid #e0e0e0' }}>
-          <Typography variant="body2">
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
+        }}
+      >
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }} />
+        <Box sx={{ flex: 1, p: { xs: 2, sm: 3 }, width: '100%', maxWidth: '100%' }}>
+          <Outlet />
+        </Box>
+        <Box
+          component="footer"
+          sx={{
+            py: 2,
+            px: 3,
+            textAlign: 'center',
+            color: 'text.secondary',
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            mt: 'auto',
+          }}
+        >
+          <Typography variant="caption">
             © 2026 SWARM by nanoFarm — AI-IoT Plant Health Monitoring System
           </Typography>
         </Box>
