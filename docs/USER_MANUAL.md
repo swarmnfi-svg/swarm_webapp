@@ -147,3 +147,14 @@ Configure:
 - **Email Server**: SMTP configuration for notifications
 - **AI Settings**: Analysis interval
 - **Report Schedule**: Automated report timing
+
+## 13. Git hub push code
+
+- **Link** - git push swarm main
+
+## 14. Terminal running code
+
+- **Frountend** : npm install 
+                  npm run dev
+- **Backend** : .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
+- **Link of the running** : http://localhost:3000 
