@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -21,4 +22,5 @@ public class DashboardResponse {
     private Double gasProduction;
     private PlantStatus plantStatus;
     private LocalDateTime lastUpdated;
+    private List<PairedDeviceResponse> pairedDevices;
 }

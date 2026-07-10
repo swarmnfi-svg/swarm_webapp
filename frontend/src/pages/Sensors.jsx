@@ -29,7 +29,7 @@ export default function Sensors() {
 
   useEffect(() => { loadData(); }, []);
 
-  const filtered = filterPlant ? nodes.filter((n) => n.plantId === filterPlant) : nodes;
+  const filtered = filterPlant ? nodes.filter((n) => n.plantId === Number(filterPlant)) : nodes;
 
   const handleSave = async () => {
     const payload = { ...form, plantId: Number(form.plantId), batteryLevel: Number(form.batteryLevel), signalStrength: Number(form.signalStrength) };

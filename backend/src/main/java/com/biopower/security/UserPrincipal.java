@@ -1,5 +1,6 @@
 package com.biopower.security;
 
+import com.biopower.model.entity.SensorNode;
 import com.biopower.model.entity.User;
 import com.biopower.model.enums.UserStatus;
 import lombok.AllArgsConstructor;
@@ -23,12 +24,16 @@ public class UserPrincipal implements UserDetails {
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
     private final List<Long> plantIds;
+    private final List<Long> nodeIds;
 
     public static UserPrincipal create(User user) {
         List<GrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
         List<Long> plantIds = user.getAssignedPlants().stream()
                 .map(p -> p.getPlantId())
+                .collect(Collectors.toList());
+        List<Long> nodeIds = user.getAssignedSensorNodes().stream()
+                .map(SensorNode::getNodeId)
                 .collect(Collectors.toList());
 
         return new UserPrincipal(
@@ -38,7 +43,8 @@ public class UserPrincipal implements UserDetails {
                 user.getPassword(),
                 authorities,
                 user.getStatus() == UserStatus.ACTIVE,
-                plantIds
+                plantIds,
+                nodeIds
         );
     }
 

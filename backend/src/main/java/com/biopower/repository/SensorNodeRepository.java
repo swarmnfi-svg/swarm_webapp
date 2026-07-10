@@ -16,6 +16,9 @@ public interface SensorNodeRepository extends JpaRepository<SensorNode, Long> {
     List<SensorNode> findByPlantPlantIdAndStatus(Long plantId, NodeStatus status);
     Optional<SensorNode> findByNodeIdAndPlantPlantId(Long nodeId, Long plantId);
     List<SensorNode> findByLastReadingAtBeforeAndStatus(LocalDateTime threshold, NodeStatus status);
+    List<SensorNode> findByLastReadingAtIsNullAndStatusAndCreatedAtBefore(NodeStatus status, LocalDateTime createdBefore);
     long countByPlantPlantIdAndStatus(Long plantId, NodeStatus status);
     List<SensorNode> findByPlantPlantIdAndSensorType(Long plantId, SensorType sensorType);
+    List<SensorNode> findByPlantPlantIdAndDeviceChipId(Long plantId, String deviceChipId);
+    List<SensorNode> findByPlantPlantIdAndSensorTypeAndDeviceChipIdIsNull(Long plantId, SensorType sensorType);
 }

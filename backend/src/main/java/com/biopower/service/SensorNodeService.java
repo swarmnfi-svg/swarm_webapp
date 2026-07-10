@@ -8,7 +8,9 @@ import com.biopower.model.entity.SensorNode;
 import com.biopower.model.enums.NodeStatus;
 import com.biopower.repository.SensorNodeRepository;
 import com.biopower.repository.SensorReadingRepository;
+import com.biopower.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +26,14 @@ public class SensorNodeService {
     private final PlantService plantService;
 
     @Transactional(readOnly = true)
-    public List<SensorNodeResponse> getAllNodes() {
-        return sensorNodeRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
+    public List<SensorNodeResponse> getAllNodes(UserPrincipal principal) {
+        return filterNodesForPrincipal(sensorNodeRepository.findAll(), principal).stream()
+                .map(this::toResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<SensorNodeResponse> getNodesByPlant(Long plantId) {
+    public List<SensorNodeResponse> getNodesByPlant(Long plantId, UserPrincipal principal) {
+        assertCanManagePlant(principal, plantId);
         return sensorNodeRepository.findByPlantPlantId(plantId).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
@@ -40,7 +44,8 @@ public class SensorNodeService {
     }
 
     @Transactional
-    public SensorNodeResponse createNode(SensorNodeRequest request) {
+    public SensorNodeResponse createNode(SensorNodeRequest request, UserPrincipal principal) {
+        assertCanManagePlant(principal, request.getPlantId());
         Plant plant = plantService.findPlant(request.getPlantId());
         SensorNode node = SensorNode.builder()
                 .plant(plant)
@@ -55,8 +60,12 @@ public class SensorNodeService {
     }
 
     @Transactional
-    public SensorNodeResponse updateNode(Long id, SensorNodeRequest request) {
+    public SensorNodeResponse updateNode(Long id, SensorNodeRequest request, UserPrincipal principal) {
         SensorNode node = findNode(id);
+        assertCanManagePlant(principal, node.getPlant().getPlantId());
+        if (!node.getPlant().getPlantId().equals(request.getPlantId())) {
+            assertCanManagePlant(principal, request.getPlantId());
+        }
         node.setNodeName(request.getNodeName());
         node.setSensorType(request.getSensorType());
         node.setFirmwareVersion(request.getFirmwareVersion());
@@ -67,8 +76,9 @@ public class SensorNodeService {
     }
 
     @Transactional
-    public SensorNodeResponse toggleNode(Long id, boolean enable) {
+    public SensorNodeResponse toggleNode(Long id, boolean enable, UserPrincipal principal) {
         SensorNode node = findNode(id);
+        assertCanManagePlant(principal, node.getPlant().getPlantId());
         node.setStatus(enable ? NodeStatus.ACTIVE : NodeStatus.INACTIVE);
         return toResponse(sensorNodeRepository.save(node));
     }
@@ -92,6 +102,8 @@ public class SensorNodeService {
                 .plantId(node.getPlant().getPlantId())
                 .plantName(node.getPlant().getPlantName())
                 .nodeName(node.getNodeName())
+                .deviceChipId(node.getDeviceChipId())
+                .deviceIp(node.getDeviceIp())
                 .sensorType(node.getSensorType())
                 .firmwareVersion(node.getFirmwareVersion())
                 .batteryLevel(node.getBatteryLevel())
@@ -101,5 +113,25 @@ public class SensorNodeService {
                 .lastReadingAt(node.getLastReadingAt())
                 .createdAt(node.getCreatedAt())
                 .build();
+    }
+
+    private List<SensorNode> filterNodesForPrincipal(List<SensorNode> nodes, UserPrincipal principal) {
+        if (isSuperAdmin(principal)) {
+            return nodes;
+        }
+        return nodes.stream()
+                .filter(node -> principal.getPlantIds().contains(node.getPlant().getPlantId()))
+                .collect(Collectors.toList());
+    }
+
+    private boolean isSuperAdmin(UserPrincipal principal) {
+        return principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+    }
+
+    private void assertCanManagePlant(UserPrincipal principal, Long plantId) {
+        if (!isSuperAdmin(principal) && !principal.getPlantIds().contains(plantId)) {
+            throw new AccessDeniedException("You cannot manage sensors for this plant");
+        }
     }
 }

@@ -19,4 +19,5 @@ public class UserRequest {
     @NotNull
     private UserRole role;
     private List<Long> plantIds;
+    private List<Long> nodeIds;
 }

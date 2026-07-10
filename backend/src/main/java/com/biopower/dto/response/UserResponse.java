@@ -18,5 +18,6 @@ public class UserResponse {
     private UserRole role;
     private UserStatus status;
     private List<Long> plantIds;
+    private List<Long> nodeIds;
     private LocalDateTime createdAt;
 }

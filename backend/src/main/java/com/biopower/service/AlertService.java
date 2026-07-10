@@ -117,8 +117,16 @@ public class AlertService {
     @Transactional
     public void checkSensorTimeouts() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(sensorTimeoutMinutes);
-        sensorNodeRepository.findByLastReadingAtBeforeAndStatus(threshold, NodeStatus.ACTIVE)
-                .forEach(node -> {
+        markOfflineIfStale(sensorNodeRepository.findByLastReadingAtBeforeAndStatus(threshold, NodeStatus.ACTIVE));
+
+        // Newly paired nodes get extra time before their first reading
+        LocalDateTime neverReportedThreshold = LocalDateTime.now().minusMinutes(sensorTimeoutMinutes * 3L);
+        markOfflineIfStale(sensorNodeRepository.findByLastReadingAtIsNullAndStatusAndCreatedAtBefore(
+                NodeStatus.ACTIVE, neverReportedThreshold));
+    }
+
+    private void markOfflineIfStale(List<com.biopower.model.entity.SensorNode> nodes) {
+        nodes.forEach(node -> {
                     String title = "Sensor Failure - No Data";
                     if (!alertRepository.existsByPlantIdAndTitleAndStatus(
                             node.getPlant().getPlantId(), title, AlertStatus.ACTIVE)) {
@@ -146,6 +154,12 @@ public class AlertService {
     @Transactional(readOnly = true)
     public List<AlertResponse> getAlertsByPlant(Long plantId) {
         return alertRepository.findByPlantIdOrderByCreatedAtDesc(plantId).stream()
+                .map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<AlertResponse> getAlertsByPlantAndStatus(Long plantId, AlertStatus status) {
+        return alertRepository.findByPlantIdAndStatus(plantId, status).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
 

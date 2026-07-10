@@ -14,6 +14,8 @@ public class SensorNodeResponse {
     private Long plantId;
     private String plantName;
     private String nodeName;
+    private String deviceChipId;
+    private String deviceIp;
     private SensorType sensorType;
     private String firmwareVersion;
     private Integer batteryLevel;

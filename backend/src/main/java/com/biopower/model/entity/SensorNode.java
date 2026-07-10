@@ -34,6 +34,12 @@ public class SensorNode {
     @Column(name = "sensor_type", nullable = false)
     private SensorType sensorType;
 
+    @Column(name = "device_chip_id", length = 32)
+    private String deviceChipId;
+
+    @Column(name = "device_ip", length = 45)
+    private String deviceIp;
+
     @Column(name = "firmware_version")
     private String firmwareVersion;
 

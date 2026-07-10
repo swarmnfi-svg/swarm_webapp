@@ -52,6 +52,15 @@ public class User {
     @Builder.Default
     private Set<Plant> assignedPlants = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_sensor_nodes",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "node_id")
+    )
+    @Builder.Default
+    private Set<SensorNode> assignedSensorNodes = new HashSet<>();
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

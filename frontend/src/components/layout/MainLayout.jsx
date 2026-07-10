@@ -8,7 +8,7 @@ import {
 import {
   Menu as MenuIcon, Dashboard, Factory, Sensors, ShowChart,
   Notifications as NotifIcon, Psychology, Build, Assessment,
-  People, Settings, Logout, Password,
+  People, Settings, Logout, Password, BluetoothConnected,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { notificationAPI } from '../../services/api';
@@ -21,12 +21,13 @@ const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Plants', icon: <Factory />, path: '/plants', roles: ['SUPER_ADMIN', 'PLANT_ADMIN'] },
   { text: 'Sensor Nodes', icon: <Sensors />, path: '/sensors', roles: ['SUPER_ADMIN', 'PLANT_ADMIN'] },
+  { text: 'Connect Device', icon: <BluetoothConnected />, path: '/connect-device', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Analytics', icon: <ShowChart />, path: '/analytics', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Alerts', icon: <NotifIcon />, path: '/alerts', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'AI Recommendations', icon: <Psychology />, path: '/ai', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Maintenance', icon: <Build />, path: '/maintenance', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Reports', icon: <Assessment />, path: '/reports', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
-  { text: 'Users', icon: <People />, path: '/users', roles: ['SUPER_ADMIN'] },
+  { text: 'Users', icon: <People />, path: '/users', roles: ['SUPER_ADMIN', 'PLANT_ADMIN'] },
   { text: 'Settings', icon: <Settings />, path: '/settings', roles: ['SUPER_ADMIN'] },
 ];
 

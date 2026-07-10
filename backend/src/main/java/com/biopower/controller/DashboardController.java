@@ -29,8 +29,10 @@ public class DashboardController {
     private final AnalyticsService analyticsService;
 
     @GetMapping("/dashboard/{plantId}")
-    public ResponseEntity<ApiResponse<DashboardResponse>> getDashboard(@PathVariable Long plantId) {
-        return ResponseEntity.ok(ApiResponse.success(aiHealthService.getDashboard(plantId)));
+    public ResponseEntity<ApiResponse<DashboardResponse>> getDashboard(
+            @PathVariable Long plantId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(ApiResponse.success(aiHealthService.getDashboard(plantId, principal)));
     }
 
     @GetMapping("/analytics/{plantId}")
@@ -50,7 +52,9 @@ public class DashboardController {
             @RequestParam(required = false) Long plantId,
             @RequestParam(required = false) AlertStatus status) {
         List<AlertResponse> alerts;
-        if (plantId != null) {
+        if (plantId != null && status != null) {
+            alerts = alertService.getAlertsByPlantAndStatus(plantId, status);
+        } else if (plantId != null) {
             alerts = alertService.getAlertsByPlant(plantId);
         } else if (status != null) {
             alerts = alertService.getAlertsByStatus(status);

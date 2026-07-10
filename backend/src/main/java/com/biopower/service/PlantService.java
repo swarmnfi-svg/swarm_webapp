@@ -12,7 +12,10 @@ import com.biopower.repository.AiRecommendationRepository;
 import com.biopower.repository.AlertRepository;
 import com.biopower.repository.PlantRepository;
 import com.biopower.repository.SensorNodeRepository;
+import com.biopower.repository.UserRepository;
+import com.biopower.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,8 @@ public class PlantService {
     private final SensorNodeRepository sensorNodeRepository;
     private final AlertRepository alertRepository;
     private final AiRecommendationRepository aiRecommendationRepository;
+    private final UserRepository userRepository;
+    private final PlantAccessService plantAccessService;
 
     @Transactional(readOnly = true)
     public List<PlantResponse> getAllPlants() {
@@ -46,7 +51,7 @@ public class PlantService {
     }
 
     @Transactional
-    public PlantResponse createPlant(PlantRequest request) {
+    public PlantResponse createPlant(PlantRequest request, UserPrincipal principal) {
         Plant plant = Plant.builder()
                 .plantName(request.getPlantName())
                 .plantType(request.getPlantType())
@@ -56,12 +61,30 @@ public class PlantService {
                 .installationDate(request.getInstallationDate())
                 .status(request.getStatus() != null ? request.getStatus() : PlantStatus.ACTIVE)
                 .build();
-        return toResponse(plantRepository.save(plant));
+        plant = plantRepository.save(plant);
+        assignPlantToCreator(plant, principal);
+        return toResponse(plant);
+    }
+
+    private void assignPlantToCreator(Plant plant, UserPrincipal principal) {
+        if (principal == null || plantAccessService.isSuperAdmin(principal)) {
+            return;
+        }
+        if (!plantAccessService.isPlantAdmin(principal)) {
+            return;
+        }
+        userRepository.findById(principal.getId()).ifPresent(user -> {
+            if (!user.getAssignedPlants().contains(plant)) {
+                user.getAssignedPlants().add(plant);
+                userRepository.save(user);
+            }
+        });
     }
 
     @Transactional
-    public PlantResponse updatePlant(Long id, PlantRequest request) {
+    public PlantResponse updatePlant(Long id, PlantRequest request, UserPrincipal principal) {
         Plant plant = findPlant(id);
+        assertCanManagePlant(principal, plant.getPlantId());
         plant.setPlantName(request.getPlantName());
         plant.setPlantType(request.getPlantType());
         plant.setLocation(request.getLocation());
@@ -112,5 +135,13 @@ public class PlantService {
         if (score >= 60) return HealthStatus.AVERAGE;
         if (score >= 40) return HealthStatus.POOR;
         return HealthStatus.CRITICAL;
+    }
+
+    private void assertCanManagePlant(UserPrincipal principal, Long plantId) {
+        boolean isSuperAdmin = principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        if (!isSuperAdmin && !principal.getPlantIds().contains(plantId)) {
+            throw new AccessDeniedException("You cannot manage this plant");
+        }
     }
 }

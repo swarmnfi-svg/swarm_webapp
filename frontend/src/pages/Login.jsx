@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
-  InputAdornment, IconButton, Link, CircularProgress,
+  InputAdornment, IconButton, Link, CircularProgress, Divider,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -90,11 +90,23 @@ export default function Login() {
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Link
               component="button" variant="body2" type="button"
-              onClick={() => { setForgotMode(!forgotMode); setError(''); }}
+              onClick={() => { setForgotMode(!forgotMode); setError(''); setSuccess(''); }}
             >
               {forgotMode ? 'Back to Login' : 'Forgot Password?'}
             </Link>
           </Box>
+
+          {!forgotMode && (
+            <>
+              <Divider sx={{ my: 2.5 }} />
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                Don&apos;t have an account?{' '}
+                <Link component={RouterLink} to="/signup" underline="hover" fontWeight={600}>
+                  Sign up
+                </Link>
+              </Typography>
+            </>
+          )}
 
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3, textAlign: 'center' }}>
             Demo: admin@biopower.com / admin123

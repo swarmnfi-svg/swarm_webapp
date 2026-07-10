@@ -16,4 +16,5 @@ public class AuthResponse {
     private String email;
     private UserRole role;
     private List<Long> plantIds;
+    private List<Long> nodeIds;
 }

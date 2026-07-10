@@ -27,7 +27,9 @@ api.interceptors.response.use(
 
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
+  signup: (data) => api.post('/auth/signup', data),
   logout: () => api.post('/auth/logout'),
+  me: () => api.get('/auth/me'),
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   changePassword: (data) => api.post('/auth/change-password', data),
 };
@@ -47,6 +49,15 @@ export const sensorAPI = {
   update: (id, data) => api.put(`/sensor-nodes/${id}`, data),
   toggle: (id, enable) => api.patch(`/sensor-nodes/${id}/toggle`, { enable }),
   delete: (id) => api.delete(`/sensor-nodes/${id}`),
+};
+
+export const deviceAPI = {
+  pair: (data) => api.post('/devices/pair', data),
+  getSwarmUrl: () => api.get('/devices/swarm-url'),
+  syncReadings: (data) => api.post('/devices/sync-readings', data),
+  espInfo: (ip) => api.get('/devices/esp/info', { params: { ip } }),
+  espStatus: (ip, password) => api.get('/devices/esp/status', { params: { ip, password } }),
+  espConfigure: (ip, password, config) => api.post('/devices/esp/configure', config, { params: { ip, password } }),
 };
 
 export const dashboardAPI = {

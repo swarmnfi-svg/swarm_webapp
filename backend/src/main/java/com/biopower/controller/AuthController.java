@@ -3,12 +3,14 @@ package com.biopower.controller;
 import com.biopower.dto.request.ChangePasswordRequest;
 import com.biopower.dto.request.ForgotPasswordRequest;
 import com.biopower.dto.request.LoginRequest;
+import com.biopower.dto.request.SignupRequest;
 import com.biopower.dto.response.ApiResponse;
 import com.biopower.dto.response.AuthResponse;
 import com.biopower.security.UserPrincipal;
 import com.biopower.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Login successful", authService.login(request)));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<AuthResponse>> signup(@Valid @RequestBody SignupRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Account created successfully", authService.signup(request)));
     }
 
     @PostMapping("/logout")
@@ -42,5 +50,11 @@ public class AuthController {
             @Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(principal.getId(), request);
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<AuthResponse>> getCurrentUser(
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(ApiResponse.success(authService.getCurrentUser(principal)));
     }
 }
