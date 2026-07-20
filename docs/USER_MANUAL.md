@@ -4,6 +4,17 @@
 
 ---
 
+## ESP Sensor Hub (Temperature + Methane)
+
+In the web app, open **User Manual** in the sidebar (`/help`). Content is filtered by role (Super Admin, Plant Admin, Operator).
+
+Repo copy with screenshots:
+
+**[ESP Sensor Hub Connection Manual](./ESP_SENSOR_HUB_MANUAL.md)**  
+Screenshots: [`docs/manual-screenshots/`](./manual-screenshots/)
+
+---
+
 ## 1. Getting Started
 
 ### Login

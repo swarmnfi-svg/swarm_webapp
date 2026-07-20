@@ -16,6 +16,7 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import ChangePassword from './pages/ChangePassword';
+import Help from './pages/Help';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ function App() {
         <Route path="settings" element={<ProtectedRoute roles={['SUPER_ADMIN']}><Settings /></ProtectedRoute>} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="change-password" element={<ChangePassword />} />
+        <Route path="help" element={<ProtectedRoute roles={['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR']}><Help /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
