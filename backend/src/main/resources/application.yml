@@ -36,7 +36,7 @@ jwt:
   expiration: ${JWT_EXPIRATION:86400000}
 
 mqtt:
-  enabled: ${MQTT_ENABLED:true}
+  enabled: ${MQTT_ENABLED:false}
   broker-url: ${MQTT_BROKER:tcp://localhost:1883}
   client-id: biopower-server
   topic: biopower/sensors/#

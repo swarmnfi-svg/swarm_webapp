@@ -25,7 +25,7 @@ import org.springframework.messaging.MessageHandler;
 import java.time.LocalDateTime;
 
 @Configuration
-@ConditionalOnProperty(name = "mqtt.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "mqtt.enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 @Slf4j
 public class MqttConfig {
