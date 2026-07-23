@@ -107,6 +107,10 @@ export default function Login() {
               </Typography>
             </>
           )}
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3, textAlign: 'center' }}>
+            Sign in with your SWARM account credentials
+          </Typography>
         </CardContent>
       </Card>
     </Box>

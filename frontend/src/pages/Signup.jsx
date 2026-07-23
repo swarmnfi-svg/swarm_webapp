@@ -117,6 +117,9 @@ export default function Signup() {
             Already have an account?{' '}
             <Link component={RouterLink} to="/login" underline="hover" fontWeight={600}>Sign in</Link>
           </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
+            Create your SWARM account to access the monitoring dashboard
+          </Typography>
         </CardContent>
       </Card>
     </Box>
