@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import AuthCallback from './pages/AuthCallback';
 import Dashboard from './pages/Dashboard';
 import Plants from './pages/Plants';
 import Sensors from './pages/Sensors';
@@ -32,6 +33,7 @@ function App() {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />

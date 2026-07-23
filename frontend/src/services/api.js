@@ -32,6 +32,10 @@ export const authAPI = {
   me: () => api.get('/auth/me'),
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   changePassword: (data) => api.post('/auth/change-password', data),
+  ssoConfig: () => api.get('/auth/sso/config'),
+  ssoLoginUrl: (returnTo) => api.get('/auth/sso/login-url', { params: { returnTo } }),
+  ssoSignupUrl: (returnTo) => api.get('/auth/sso/signup-url', { params: { returnTo } }),
+  ssoCallback: (code) => api.post('/auth/sso/callback', { code }),
 };
 
 export const plantAPI = {

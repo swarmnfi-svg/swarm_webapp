@@ -1,27 +1,44 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, Button, Tabs, Tab, CircularProgress,
+  Chip, Button, Tabs, Tab, CircularProgress, FormControl, InputLabel, Select, MenuItem,
 } from '@mui/material';
 import { CheckCircle, DoneAll } from '@mui/icons-material';
-import { alertAPI } from '../services/api';
+import { alertAPI, plantAPI } from '../services/api';
 import { formatDate } from '../utils/constants';
 
 export default function Alerts() {
+  const [plants, setPlants] = useState([]);
+  const [selectedPlant, setSelectedPlant] = useState('');
   const [alerts, setAlerts] = useState([]);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const statuses = ['ACTIVE', 'ACKNOWLEDGED', 'RESOLVED'];
 
+  useEffect(() => {
+    plantAPI.getAll().then(({ data }) => {
+      const list = data.data || [];
+      setPlants(list);
+      const pairedPlant = sessionStorage.getItem('dashboardPlantId');
+      if (pairedPlant && list.some((p) => p.plantId === Number(pairedPlant))) {
+        setSelectedPlant(Number(pairedPlant));
+        sessionStorage.removeItem('dashboardPlantId');
+      } else if (list.length > 0) {
+        setSelectedPlant(list[0].plantId);
+      }
+    });
+  }, []);
+
   const loadAlerts = () => {
+    if (!selectedPlant) return;
     setLoading(true);
-    alertAPI.getAll({ status: statuses[tab] })
+    alertAPI.getAll({ plantId: selectedPlant, status: statuses[tab] })
       .then(({ data }) => setAlerts(data.data || []))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadAlerts(); }, [tab]);
+  useEffect(() => { loadAlerts(); }, [tab, selectedPlant]);
 
   const handleAcknowledge = async (id) => {
     await alertAPI.acknowledge(id);
@@ -38,6 +55,19 @@ export default function Alerts() {
   return (
     <Box>
       <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>Alert Management</Typography>
+
+      <FormControl sx={{ minWidth: 280, mb: 2 }} size="small">
+        <InputLabel>Plant</InputLabel>
+        <Select
+          value={selectedPlant}
+          label="Plant"
+          onChange={(e) => setSelectedPlant(e.target.value)}
+        >
+          {plants.map((p) => (
+            <MenuItem key={p.plantId} value={p.plantId}>{p.plantName}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
         <Tab label="Active" /><Tab label="Acknowledged" /><Tab label="Resolved" />

@@ -23,4 +23,5 @@ public class DashboardResponse {
     private PlantStatus plantStatus;
     private LocalDateTime lastUpdated;
     private List<PairedDeviceResponse> pairedDevices;
+    private List<SensorType> visibleSensorTypes;
 }

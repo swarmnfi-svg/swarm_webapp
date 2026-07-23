@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,5 +23,6 @@ public class PlantResponse {
     private Integer activeAlerts;
     private Integer healthScore;
     private HealthStatus healthStatus;
+    private List<String> enabledSensorTypes;
     private LocalDateTime createdAt;
 }

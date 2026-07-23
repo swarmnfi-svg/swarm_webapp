@@ -36,4 +36,35 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
            "AND r.recordedAt BETWEEN :start AND :end")
     Double averageValue(@Param("plantId") Long plantId, @Param("type") SensorType type,
                         @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT r FROM SensorReading r WHERE r.plantId IN :plantIds " +
+           "AND (:plantId IS NULL OR r.plantId = :plantId) " +
+           "AND (:nodeId IS NULL OR r.nodeId = :nodeId) " +
+           "AND (:sensorType IS NULL OR r.sensorType = :sensorType) " +
+           "AND (:updatedSince IS NULL OR r.recordedAt >= :updatedSince) " +
+           "AND ((:cursorTime IS NULL AND :cursorId IS NULL) OR r.recordedAt > :cursorTime OR (r.recordedAt = :cursorTime AND r.id > :cursorId)) " +
+           "ORDER BY r.recordedAt ASC, r.id ASC")
+    List<SensorReading> findPartnerHistory(
+            @Param("plantIds") List<Long> plantIds,
+            @Param("plantId") Long plantId,
+            @Param("nodeId") Long nodeId,
+            @Param("sensorType") SensorType sensorType,
+            @Param("updatedSince") LocalDateTime updatedSince,
+            @Param("cursorTime") LocalDateTime cursorTime,
+            @Param("cursorId") Long cursorId,
+            org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT r FROM SensorReading r WHERE r.plantId IN :plantIds " +
+           "AND r.recordedAt BETWEEN :start AND :end " +
+           "AND (:plantId IS NULL OR r.plantId = :plantId) " +
+           "AND (:nodeId IS NULL OR r.nodeId = :nodeId) " +
+           "AND (:sensorType IS NULL OR r.sensorType = :sensorType) " +
+           "ORDER BY r.recordedAt ASC")
+    List<SensorReading> findPartnerRange(
+            @Param("plantIds") List<Long> plantIds,
+            @Param("plantId") Long plantId,
+            @Param("nodeId") Long nodeId,
+            @Param("sensorType") SensorType sensorType,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

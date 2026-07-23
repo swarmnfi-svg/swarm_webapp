@@ -3,14 +3,23 @@ import {
   Box, Typography, Button, Card, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Chip, IconButton, Dialog, DialogTitle, DialogContent,
   DialogActions, TextField, MenuItem, Grid, CircularProgress, Divider, Alert,
+  FormControl, InputLabel, Select, Checkbox, ListItemText, OutlinedInput,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import { plantAPI, sensorAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { PLANT_TYPES, formatPlantType, getHealthColor, SENSOR_LABELS } from '../utils/constants';
+import {
+  PLANT_TYPES, formatPlantType, getHealthColor, SENSOR_LABELS, SENSOR_TYPES, HARDWARE_PRESETS,
+} from '../utils/constants';
 
-const emptyForm = { plantName: '', plantType: 'BIOGAS', location: '', capacity: '', feedstockType: '', installationDate: '', status: 'ACTIVE' };
-const emptySensorForm = { plantId: '', nodeName: '', sensorType: 'TEMPERATURE', firmwareVersion: 'v2.1.0', batteryLevel: 100, signalStrength: 90, status: 'ACTIVE' };
+const emptyForm = {
+  plantName: '', plantType: 'BIOGAS', location: '', capacity: '', feedstockType: '',
+  installationDate: '', status: 'ACTIVE', enabledSensorTypes: [],
+};
+const emptySensorForm = {
+  plantId: '', nodeName: '', sensorType: 'TEMPERATURE', firmwareVersion: 'v2.1.0',
+  batteryLevel: 100, signalStrength: 90, status: 'ACTIVE',
+};
 
 export default function Plants() {
   const { isSuperAdmin } = useAuth();
@@ -40,10 +49,25 @@ export default function Plants() {
 
   useEffect(() => { loadPlants(); }, []);
 
+  const allowedSensorTypes = (form.enabledSensorTypes?.length
+    ? form.enabledSensorTypes
+    : SENSOR_TYPES);
+
+  const applyHardwarePreset = (types) => {
+    setForm((prev) => ({
+      ...prev,
+      enabledSensorTypes: [...new Set([...(prev.enabledSensorTypes || []), ...types])],
+    }));
+  };
+
   const handleSave = async () => {
     setError('');
     try {
-      const payload = { ...form, capacity: parseFloat(form.capacity) || null };
+      const payload = {
+        ...form,
+        capacity: parseFloat(form.capacity) || null,
+        enabledSensorTypes: form.enabledSensorTypes || [],
+      };
       if (editId) await plantAPI.update(editId, payload);
       else await plantAPI.create(payload);
       setDialogOpen(false);
@@ -66,6 +90,7 @@ export default function Plants() {
       feedstockType: plant.feedstockType || '',
       installationDate: plant.installationDate || '',
       status: plant.status,
+      enabledSensorTypes: plant.enabledSensorTypes || [],
     });
     setError('');
     setDialogOpen(true);
@@ -95,7 +120,8 @@ export default function Plants() {
 
   const openSensorCreate = () => {
     setSensorEditId(null);
-    setSensorForm({ ...emptySensorForm, plantId: editId });
+    const defaultType = allowedSensorTypes[0] || 'TEMPERATURE';
+    setSensorForm({ ...emptySensorForm, plantId: editId, sensorType: defaultType });
     setSensorDialogOpen(true);
   };
 
@@ -112,6 +138,12 @@ export default function Plants() {
     await loadPlantSensors(editId);
   };
 
+  const handleSensorDelete = async (nodeId) => {
+    if (!window.confirm('Delete this sensor node?')) return;
+    await sensorAPI.delete(nodeId);
+    await loadPlantSensors(editId);
+  };
+
   if (loading) return <CircularProgress />;
 
   return (
@@ -120,7 +152,7 @@ export default function Plants() {
         <Box>
           <Typography variant="h5" fontWeight={700}>Plant Management</Typography>
           <Typography variant="body2" color="text.secondary">
-            Edit plant details and manage sensors installed at each site.
+            Configure SaaS project hardware and manage installed sensors per plant.
           </Typography>
         </Box>
         <Button variant="contained" startIcon={<Add />} onClick={() => { setEditId(null); setForm(emptyForm); setPlantSensors([]); setDialogOpen(true); }}>
@@ -134,7 +166,7 @@ export default function Plants() {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell><TableCell>Type</TableCell><TableCell>Location</TableCell>
-                <TableCell>Capacity</TableCell><TableCell>Health</TableCell><TableCell>Status</TableCell><TableCell>Actions</TableCell>
+                <TableCell>Hardware</TableCell><TableCell>Health</TableCell><TableCell>Status</TableCell><TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -143,7 +175,9 @@ export default function Plants() {
                   <TableCell>{p.plantName}</TableCell>
                   <TableCell>{formatPlantType(p.plantType)}</TableCell>
                   <TableCell>{p.location}</TableCell>
-                  <TableCell>{p.capacity} m³</TableCell>
+                  <TableCell>
+                    <Chip label={`${(p.enabledSensorTypes || []).length} types`} size="small" variant="outlined" />
+                  </TableCell>
                   <TableCell>
                     <Chip label={`${p.healthScore || 0} - ${p.healthStatus || 'N/A'}`}
                       size="small" sx={{ bgcolor: getHealthColor(p.healthStatus), color: 'white' }} />
@@ -180,17 +214,54 @@ export default function Plants() {
                 {['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'OFFLINE'].map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
             </Grid>
+
+            {isSuperAdmin && (
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>Project hardware (SaaS)</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Only selected hardware appears on the dashboard for this plant.
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                  <Button size="small" variant="outlined" onClick={() => applyHardwarePreset(HARDWARE_PRESETS.TRANSMITTERS)}>
+                    + 3 Transmitters
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => applyHardwarePreset(HARDWARE_PRESETS.ESP_HUB)}>
+                    + ESP Hub (Temp/Humidity/Gas)
+                  </Button>
+                </Box>
+                <FormControl fullWidth>
+                  <InputLabel>Enabled hardware / sensors</InputLabel>
+                  <Select
+                    multiple
+                    value={form.enabledSensorTypes || []}
+                    onChange={(e) => setForm({ ...form, enabledSensorTypes: e.target.value })}
+                    input={<OutlinedInput label="Enabled hardware / sensors" />}
+                    renderValue={(selected) => selected.map((t) => SENSOR_LABELS[t] || t).join(', ')}
+                  >
+                    {SENSOR_TYPES.map((t) => (
+                      <MenuItem key={t} value={t}>
+                        <Checkbox checked={(form.enabledSensorTypes || []).includes(t)} />
+                        <ListItemText primary={SENSOR_LABELS[t] || t} />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
           </Grid>
 
           {editId && (
             <Box sx={{ mt: 3 }}>
               <Divider sx={{ mb: 2 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle1" fontWeight={600}>Sensors at this plant</Typography>
-                <Button size="small" startIcon={<Add />} onClick={openSensorCreate}>Add Sensor</Button>
+                <Typography variant="subtitle1" fontWeight={600}>Installed sensors</Typography>
+                {isSuperAdmin && (
+                  <Button size="small" startIcon={<Add />} onClick={openSensorCreate}>Add Sensor</Button>
+                )}
               </Box>
               {plantSensors.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">No sensors registered for this plant yet.</Typography>
+                <Typography variant="body2" color="text.secondary">No sensors registered. Enable hardware above, then add sensor nodes.</Typography>
               ) : (
                 <Table size="small">
                   <TableHead>
@@ -198,7 +269,7 @@ export default function Plants() {
                       <TableCell>Name</TableCell>
                       <TableCell>Type</TableCell>
                       <TableCell>Status</TableCell>
-                      <TableCell align="right">Actions</TableCell>
+                      {isSuperAdmin && <TableCell align="right">Actions</TableCell>}
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -209,9 +280,12 @@ export default function Plants() {
                         <TableCell>
                           <Chip label={s.status} size="small" color={s.status === 'ACTIVE' ? 'success' : 'default'} />
                         </TableCell>
-                        <TableCell align="right">
-                          <IconButton size="small" onClick={() => openSensorEdit(s)}><Edit /></IconButton>
-                        </TableCell>
+                        {isSuperAdmin && (
+                          <TableCell align="right">
+                            <IconButton size="small" onClick={() => openSensorEdit(s)}><Edit /></IconButton>
+                            <IconButton size="small" color="error" onClick={() => handleSensorDelete(s.nodeId)}><Delete /></IconButton>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -232,8 +306,8 @@ export default function Plants() {
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}><TextField fullWidth label="Node Name" value={sensorForm.nodeName} onChange={(e) => setSensorForm({ ...sensorForm, nodeName: e.target.value })} /></Grid>
             <Grid item xs={12}>
-              <TextField fullWidth select label="Sensor Type" value={sensorForm.sensorType} onChange={(e) => setSensorForm({ ...sensorForm, sensorType: e.target.value })}>
-                {Object.keys(SENSOR_LABELS).map((t) => <MenuItem key={t} value={t}>{SENSOR_LABELS[t]}</MenuItem>)}
+              <TextField fullWidth select label="Sensor / Hardware Type" value={sensorForm.sensorType} onChange={(e) => setSensorForm({ ...sensorForm, sensorType: e.target.value })}>
+                {allowedSensorTypes.map((t) => <MenuItem key={t} value={t}>{SENSOR_LABELS[t] || t}</MenuItem>)}
               </TextField>
             </Grid>
             <Grid item xs={12} sm={4}><TextField fullWidth label="Firmware" value={sensorForm.firmwareVersion} onChange={(e) => setSensorForm({ ...sensorForm, firmwareVersion: e.target.value })} /></Grid>

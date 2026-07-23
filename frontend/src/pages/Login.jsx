@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import { redirectToSso } from '../utils/sso';
 import Logo from '../components/common/Logo';
 
 export default function Login() {
@@ -15,8 +16,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const [forgotMode, setForgotMode] = useState(false);
   const [success, setSuccess] = useState('');
+  const [checkingSso, setCheckingSso] = useState(true);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    redirectToSso('login').catch(() => {}).finally(() => setCheckingSso(false));
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,6 +47,14 @@ export default function Login() {
       setError(err.response?.data?.message || 'Failed to send reset link');
     }
   };
+
+  if (checkingSso) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{
@@ -109,7 +123,7 @@ export default function Login() {
           )}
 
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3, textAlign: 'center' }}>
-            Demo: admin@biopower.com / admin123
+            Production uses emPOWER SaaS login at accounts.empowerapp.in
           </Typography>
         </CardContent>
       </Card>

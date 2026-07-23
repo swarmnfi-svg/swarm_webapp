@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, Card, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Chip, IconButton, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, MenuItem, Grid, FormControl, InputLabel, Select, CircularProgress,
+  DialogActions, TextField, MenuItem, Grid, FormControl, InputLabel, Select, CircularProgress, Alert,
 } from '@mui/material';
-import { Add, Edit, PowerSettingsNew } from '@mui/icons-material';
+import { Add, Edit, PowerSettingsNew, Delete } from '@mui/icons-material';
 import { sensorAPI, plantAPI } from '../services/api';
-import { SENSOR_TYPES, formatPlantType } from '../utils/constants';
+import { useAuth } from '../context/AuthContext';
+import { SENSOR_LABELS, getSensorTypesForPlant } from '../utils/constants';
 
-const emptyForm = { plantId: '', nodeName: '', sensorType: 'PH', firmwareVersion: 'v2.1.0', batteryLevel: 100, signalStrength: 90, status: 'ACTIVE' };
+const emptyForm = { plantId: '', nodeName: '', sensorType: 'TEMPERATURE', firmwareVersion: 'v2.1.0', batteryLevel: 100, signalStrength: 90, status: 'ACTIVE' };
 
 export default function Sensors() {
+  const { isSuperAdmin } = useAuth();
   const [nodes, setNodes] = useState([]);
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +32,8 @@ export default function Sensors() {
   useEffect(() => { loadData(); }, []);
 
   const filtered = filterPlant ? nodes.filter((n) => n.plantId === Number(filterPlant)) : nodes;
+  const selectedPlant = plants.find((p) => p.plantId === Number(form.plantId));
+  const sensorTypeOptions = getSensorTypesForPlant(selectedPlant);
 
   const handleSave = async () => {
     const payload = { ...form, plantId: Number(form.plantId), batteryLevel: Number(form.batteryLevel), signalStrength: Number(form.signalStrength) };
@@ -44,12 +48,23 @@ export default function Sensors() {
     loadData();
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this sensor node?')) return;
+    await sensorAPI.delete(id);
+    loadData();
+  };
+
   if (loading) return <CircularProgress />;
 
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h5" fontWeight={700}>Sensor Node Management</Typography>
+        <Box>
+          <Typography variant="h5" fontWeight={700}>Sensor & Hardware Management</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Super admin registers and edits installed hardware for each SaaS project.
+          </Typography>
+        </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Filter by Plant</InputLabel>
@@ -58,18 +73,24 @@ export default function Sensors() {
               {plants.map((p) => <MenuItem key={p.plantId} value={p.plantId}>{p.plantName}</MenuItem>)}
             </Select>
           </FormControl>
-          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditId(null); setForm(emptyForm); setDialogOpen(true); }}>
-            Register Node
-          </Button>
+          {isSuperAdmin && (
+            <Button variant="contained" startIcon={<Add />} onClick={() => { setEditId(null); setForm(emptyForm); setDialogOpen(true); }}>
+              Register Hardware
+            </Button>
+          )}
         </Box>
       </Box>
+
+      {!isSuperAdmin && (
+        <Alert severity="info" sx={{ mb: 2 }}>View only. Contact super admin to add or edit sensors.</Alert>
+      )}
 
       <Card>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Node Name</TableCell><TableCell>Plant</TableCell><TableCell>Sensor Type</TableCell>
+                <TableCell>Node Name</TableCell><TableCell>Plant</TableCell><TableCell>Hardware Type</TableCell>
                 <TableCell>Last Value</TableCell><TableCell>Battery</TableCell><TableCell>Signal</TableCell>
                 <TableCell>Status</TableCell><TableCell>Actions</TableCell>
               </TableRow>
@@ -79,7 +100,7 @@ export default function Sensors() {
                 <TableRow key={n.nodeId}>
                   <TableCell>{n.nodeName}</TableCell>
                   <TableCell>{n.plantName}</TableCell>
-                  <TableCell>{n.sensorType}</TableCell>
+                  <TableCell>{SENSOR_LABELS[n.sensorType] || n.sensorType}</TableCell>
                   <TableCell>{n.lastValue != null ? n.lastValue.toFixed(2) : '--'}</TableCell>
                   <TableCell>{n.batteryLevel}%</TableCell>
                   <TableCell>{n.signalStrength}%</TableCell>
@@ -88,12 +109,19 @@ export default function Sensors() {
                       color={n.status === 'ACTIVE' ? 'success' : n.status === 'OFFLINE' ? 'error' : 'default'} />
                   </TableCell>
                   <TableCell>
-                    <IconButton size="small" onClick={() => handleToggle(n.nodeId, n.status)} title="Toggle">
-                      <PowerSettingsNew />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => { setEditId(n.nodeId); setForm({ ...n, plantId: n.plantId }); setDialogOpen(true); }}>
-                      <Edit />
-                    </IconButton>
+                    {isSuperAdmin && (
+                      <>
+                        <IconButton size="small" onClick={() => handleToggle(n.nodeId, n.status)} title="Toggle">
+                          <PowerSettingsNew />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => { setEditId(n.nodeId); setForm({ ...n, plantId: n.plantId }); setDialogOpen(true); }}>
+                          <Edit />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => handleDelete(n.nodeId)}>
+                          <Delete />
+                        </IconButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -103,7 +131,7 @@ export default function Sensors() {
       </Card>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editId ? 'Edit Sensor Node' : 'Register Sensor Node'}</DialogTitle>
+        <DialogTitle>{editId ? 'Edit Hardware' : 'Register Hardware'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
@@ -113,8 +141,8 @@ export default function Sensors() {
             </Grid>
             <Grid item xs={12}><TextField fullWidth label="Node Name" value={form.nodeName} onChange={(e) => setForm({ ...form, nodeName: e.target.value })} /></Grid>
             <Grid item xs={12}>
-              <TextField fullWidth select label="Sensor Type" value={form.sensorType} onChange={(e) => setForm({ ...form, sensorType: e.target.value })}>
-                {SENSOR_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              <TextField fullWidth select label="Hardware Type" value={form.sensorType} onChange={(e) => setForm({ ...form, sensorType: e.target.value })}>
+                {sensorTypeOptions.map((t) => <MenuItem key={t} value={t}>{SENSOR_LABELS[t] || t}</MenuItem>)}
               </TextField>
             </Grid>
             <Grid item xs={6}><TextField fullWidth label="Firmware" value={form.firmwareVersion} onChange={(e) => setForm({ ...form, firmwareVersion: e.target.value })} /></Grid>

@@ -20,6 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+        initializeAssignments(user);
         return UserPrincipal.create(user);
     }
 
@@ -27,6 +28,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + id));
+        initializeAssignments(user);
         return UserPrincipal.create(user);
+    }
+
+    private void initializeAssignments(User user) {
+        user.getAssignedPlants().size();
+        user.getAssignedSensorNodes().size();
     }
 }

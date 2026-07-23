@@ -4,11 +4,13 @@ import com.biopower.dto.response.AiRecommendationResponse;
 import com.biopower.dto.response.DashboardResponse;
 import com.biopower.dto.response.PairedDeviceResponse;
 import com.biopower.model.entity.AiRecommendation;
+import com.biopower.model.entity.Plant;
 import com.biopower.model.entity.SensorNode;
 import com.biopower.model.entity.SensorReading;
 import com.biopower.model.enums.*;
 import com.biopower.repository.*;
 import com.biopower.security.UserPrincipal;
+import com.biopower.util.PlantSensorTypes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ public class AiHealthService {
 
     @Transactional
     public void analyzePlant(Long plantId) {
-        Map<SensorType, Double> readings = getCurrentReadings(plantId, null);
+        Map<SensorType, Double> readings = getCurrentReadings(plantId, null, Arrays.asList(SensorType.values()));
         List<String> recommendations = new ArrayList<>();
         AiIssueType issueType = null;
         int score = 100;
@@ -52,6 +54,9 @@ public class AiHealthService {
 
         Double methane = readings.get(SensorType.METHANE);
         Double gasFlow = readings.get(SensorType.GAS_FLOW);
+        if (gasFlow == null) {
+            gasFlow = readings.get(SensorType.FLOW_TRANSMITTER);
+        }
         // ESP MQ5 hubs report raw ADC (0-1023); only apply the % threshold for true percentage readings
         if (methane != null && methane <= 100 && methane < 50) {
             issueType = AiIssueType.GAS_YIELD_REDUCTION;
@@ -66,6 +71,9 @@ public class AiHealthService {
         }
 
         Double temp = readings.get(SensorType.TEMPERATURE);
+        if (temp == null) {
+            temp = readings.get(SensorType.TEMPERATURE_TRANSMITTER);
+        }
         if (temp != null && (temp < 30 || temp > 42)) {
             issueType = AiIssueType.PLANT_INSTABILITY;
             recommendations.add("Stabilize digester temperature within 35-40°C range.");
@@ -116,10 +124,6 @@ public class AiHealthService {
                 .orElseThrow(() -> new com.biopower.exception.ResourceNotFoundException("Plant not found"));
 
         Set<Long> allowedNodeIds = resolveAllowedNodeIds(principal);
-        Map<SensorType, Double> readings = getCurrentReadings(plantId, allowedNodeIds);
-        int healthScore = aiRecommendationRepository.findFirstByPlantIdOrderByCreatedAtDesc(plantId)
-                .map(AiRecommendation::getHealthScore).orElse(85);
-
         List<SensorNode> plantNodes = sensorNodeRepository.findByPlantPlantId(plantId);
         if (allowedNodeIds != null) {
             plantNodes = plantNodes.stream()
@@ -127,12 +131,20 @@ public class AiHealthService {
                     .collect(Collectors.toList());
         }
 
+        boolean operatorScoped = plantAccessService.shouldFilterSensorsForOperator(principal);
+        List<SensorType> visibleSensorTypes = resolveVisibleSensorTypes(plant, plantNodes, operatorScoped);
+        Map<SensorType, Double> readings = getCurrentReadings(plantId, allowedNodeIds, visibleSensorTypes);
+        int healthScore = aiRecommendationRepository.findFirstByPlantIdOrderByCreatedAtDesc(plantId)
+                .map(AiRecommendation::getHealthScore).orElse(85);
+
         long activeNodes = plantNodes.stream().filter(n -> n.getStatus() == NodeStatus.ACTIVE).count();
         long totalNodes = plantNodes.size();
         long activeAlerts = alertRepository.countByPlantIdAndStatus(plantId, AlertStatus.ACTIVE);
-        Double gasProduction = readings.getOrDefault(SensorType.GAS_FLOW, 0.0);
+        Double gasProduction = readings.getOrDefault(SensorType.GAS_FLOW,
+                readings.getOrDefault(SensorType.FLOW_TRANSMITTER, 0.0));
         List<PairedDeviceResponse> pairedDevices = buildPairedDevices(plantId, plant.getPlantName(), allowedNodeIds);
-        enrichReadingsFromDevices(readings, pairedDevices);
+        enrichReadingsFromDevices(readings, pairedDevices, visibleSensorTypes);
+        readings = filterReadings(readings, visibleSensorTypes);
 
         return DashboardResponse.builder()
                 .plantId(plantId)
@@ -147,18 +159,55 @@ public class AiHealthService {
                 .plantStatus(plant.getStatus())
                 .lastUpdated(LocalDateTime.now())
                 .pairedDevices(pairedDevices)
+                .visibleSensorTypes(visibleSensorTypes)
                 .build();
     }
 
-    private void enrichReadingsFromDevices(Map<SensorType, Double> readings, List<PairedDeviceResponse> devices) {
+    private List<SensorType> resolveVisibleSensorTypes(Plant plant, List<SensorNode> scopedNodes, boolean operatorScoped) {
+        Set<SensorType> configured = PlantSensorTypes.parse(plant.getEnabledSensorTypes());
+        LinkedHashSet<SensorType> nodeTypes = scopedNodes.stream()
+                .filter(node -> node.getStatus() == NodeStatus.ACTIVE)
+                .map(SensorNode::getSensorType)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (!configured.isEmpty()) {
+            if (operatorScoped) {
+                return configured.stream()
+                        .filter(nodeTypes::contains)
+                        .collect(Collectors.toList());
+            }
+            return new ArrayList<>(configured);
+        }
+        return new ArrayList<>(nodeTypes);
+    }
+
+    private Map<SensorType, Double> filterReadings(Map<SensorType, Double> readings, List<SensorType> visibleTypes) {
+        if (visibleTypes == null || visibleTypes.isEmpty()) {
+            return Map.of();
+        }
+        Map<SensorType, Double> filtered = new EnumMap<>(SensorType.class);
+        for (SensorType type : visibleTypes) {
+            if (readings.containsKey(type)) {
+                filtered.put(type, readings.get(type));
+            }
+        }
+        return filtered;
+    }
+
+    private void enrichReadingsFromDevices(Map<SensorType, Double> readings,
+                                           List<PairedDeviceResponse> devices,
+                                           List<SensorType> visibleSensorTypes) {
+        Set<SensorType> visible = visibleSensorTypes == null
+                ? Set.of()
+                : new HashSet<>(visibleSensorTypes);
         for (PairedDeviceResponse device : devices) {
-            if (device.getTemperature() != null) {
+            if (visible.contains(SensorType.TEMPERATURE) && device.getTemperature() != null) {
                 readings.put(SensorType.TEMPERATURE, device.getTemperature());
             }
-            if (device.getHumidity() != null) {
+            if (visible.contains(SensorType.HUMIDITY) && device.getHumidity() != null) {
                 readings.put(SensorType.HUMIDITY, device.getHumidity());
             }
-            if (device.getGas() != null) {
+            if (visible.contains(SensorType.METHANE) && device.getGas() != null) {
                 readings.put(SensorType.METHANE, device.getGas());
             }
         }
@@ -257,9 +306,12 @@ public class AiHealthService {
         return NodeStatus.ACTIVE;
     }
 
-    private Map<SensorType, Double> getCurrentReadings(Long plantId, Set<Long> allowedNodeIds) {
+    private Map<SensorType, Double> getCurrentReadings(Long plantId, Set<Long> allowedNodeIds, List<SensorType> visibleTypes) {
         Map<SensorType, Double> readings = new EnumMap<>(SensorType.class);
-        for (SensorType type : SensorType.values()) {
+        if (visibleTypes == null || visibleTypes.isEmpty()) {
+            return readings;
+        }
+        for (SensorType type : visibleTypes) {
             sensorReadingRepository.findFirstByPlantIdAndSensorTypeOrderByRecordedAtDesc(plantId, type)
                     .filter(r -> allowedNodeIds == null || allowedNodeIds.contains(r.getNodeId()))
                     .ifPresent(r -> readings.put(type, r.getValue()));

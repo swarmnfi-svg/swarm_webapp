@@ -4,8 +4,10 @@ import com.biopower.dto.request.ChangePasswordRequest;
 import com.biopower.dto.request.ForgotPasswordRequest;
 import com.biopower.dto.request.LoginRequest;
 import com.biopower.dto.request.SignupRequest;
+import com.biopower.dto.request.SsoCallbackRequest;
 import com.biopower.dto.response.ApiResponse;
 import com.biopower.dto.response.AuthResponse;
+import com.biopower.dto.response.SsoConfigResponse;
 import com.biopower.security.UserPrincipal;
 import com.biopower.service.AuthService;
 import jakarta.validation.Valid;
@@ -21,6 +23,30 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    @GetMapping("/sso/config")
+    public ResponseEntity<ApiResponse<SsoConfigResponse>> ssoConfig() {
+        return ResponseEntity.ok(ApiResponse.success(authService.getSsoConfig()));
+    }
+
+    @GetMapping("/sso/login-url")
+    public ResponseEntity<ApiResponse<String>> ssoLoginUrl(
+            @RequestParam(required = false) String returnTo) {
+        return ResponseEntity.ok(ApiResponse.success(authService.buildSsoUrl("login", returnTo)));
+    }
+
+    @GetMapping("/sso/signup-url")
+    public ResponseEntity<ApiResponse<String>> ssoSignupUrl(
+            @RequestParam(required = false) String returnTo) {
+        return ResponseEntity.ok(ApiResponse.success(authService.buildSsoUrl("signup", returnTo)));
+    }
+
+    @PostMapping("/sso/callback")
+    public ResponseEntity<ApiResponse<AuthResponse>> ssoCallback(
+            @Valid @RequestBody SsoCallbackRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "SSO login successful", authService.exchangeSsoCode(request.getCode())));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {

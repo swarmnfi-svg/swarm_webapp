@@ -43,6 +43,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, [persistUser]);
 
+  const loginWithSsoCode = useCallback(async (code) => {
+    setLoading(true);
+    try {
+      const { data } = await authAPI.ssoCallback(code);
+      const authData = data.data;
+      localStorage.setItem('token', authData.token);
+      return persistUser(toUserData(authData));
+    } finally {
+      setLoading(false);
+    }
+  }, [persistUser]);
+
   const signup = useCallback(async (payload) => {
     setLoading(true);
     try {
@@ -75,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      user, login, signup, logout, refreshUser, loading,
+      user, login, loginWithSsoCode, signup, logout, refreshUser, loading,
       isSuperAdmin, isPlantAdmin, isOperator,
       canManagePlants, canManageUsers,
     }}>

@@ -33,7 +33,10 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         settingsService.initializeDefaults();
-        if (userRepository.count() > 0) return;
+        if (userRepository.count() > 0) {
+            log.info("Database already contains data — skipping sample data seed.");
+            return;
+        }
 
         log.info("Initializing sample data...");
 

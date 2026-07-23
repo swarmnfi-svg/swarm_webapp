@@ -68,8 +68,10 @@ public class SensorNodeController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteNode(@PathVariable Long id) {
-        sensorNodeService.deleteNode(id);
+    public ResponseEntity<ApiResponse<Void>> deleteNode(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        sensorNodeService.deleteNode(id, principal);
         return ResponseEntity.ok(ApiResponse.success("Sensor node deleted", null));
     }
 }

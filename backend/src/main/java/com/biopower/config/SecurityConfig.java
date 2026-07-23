@@ -1,5 +1,6 @@
 package com.biopower.config;
 
+import com.biopower.security.ApiKeyAuthenticationFilter;
 import com.biopower.security.CustomAccessDeniedHandler;
 import com.biopower.security.JwtAuthenticationEntryPoint;
 import com.biopower.security.JwtAuthenticationFilter;
@@ -38,6 +39,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint entryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final JwtAuthenticationFilter jwtFilter;
+    private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
     private final UserDetailsService userDetailsService;
 
     @Value("${biopower.cors.allowed-origins}")
@@ -45,7 +47,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // Align with emPOWER SaaS (bcrypt rounds 12)
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -75,6 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/iot/data").permitAll()
                         .requestMatchers(HttpMethod.POST, "/iot/batch").permitAll()
+                        .requestMatchers("/partner/v1/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/plants/**").hasAnyRole("SUPER_ADMIN", "PLANT_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/plants/**").hasAnyRole("SUPER_ADMIN", "PLANT_ADMIN")
@@ -83,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers("/settings/**").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

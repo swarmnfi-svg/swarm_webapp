@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class PlantRequest {
@@ -19,4 +20,5 @@ public class PlantRequest {
     private String feedstockType;
     private LocalDate installationDate;
     private PlantStatus status;
+    private List<String> enabledSensorTypes;
 }

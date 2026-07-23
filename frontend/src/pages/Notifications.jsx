@@ -25,7 +25,7 @@ export default function Notifications() {
         <ListItem key={a.id} divider>
           <ListItemText
             primary={a.title}
-            secondary={`${a.plantName} | ${formatDate(a.createdAt)}`}
+            secondary={`${a.plantName} | ${a.message || ''} | ${formatDate(a.createdAt)}`}
           />
           <Chip label={a.severity} size="small"
             color={a.severity === 'CRITICAL' ? 'error' : a.severity === 'WARNING' ? 'warning' : 'info'} />

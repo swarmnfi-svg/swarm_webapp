@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, PersonAdd } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import { redirectToSso } from '../utils/sso';
 import Logo from '../components/common/Logo';
 
 const authShellSx = {
@@ -29,24 +30,24 @@ const cardHeaderSx = {
 
 export default function Signup() {
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    mobile: '',
-    password: '',
-    confirmPassword: '',
+    name: '', email: '', mobile: '', password: '', confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [checkingSso, setCheckingSso] = useState(true);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    redirectToSso('signup').catch(() => {}).finally(() => setCheckingSso(false));
+  }, []);
 
   const updateField = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     if (form.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -55,7 +56,6 @@ export default function Signup() {
       setError('Passwords do not match');
       return;
     }
-
     try {
       await signup({
         name: form.name.trim(),
@@ -74,6 +74,14 @@ export default function Signup() {
       }
     }
   };
+
+  if (checkingSso) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={authShellSx}>
@@ -94,65 +102,37 @@ export default function Signup() {
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
           <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth label="Full name" margin="normal"
-              value={form.name} onChange={updateField('name')} required autoComplete="name"
-            />
-            <TextField
-              fullWidth label="Email" type="email" margin="normal"
-              value={form.email} onChange={updateField('email')} required autoComplete="email"
-            />
-            <TextField
-              fullWidth label="Mobile (optional)" type="tel" margin="normal"
-              value={form.mobile} onChange={updateField('mobile')} autoComplete="tel"
-            />
-            <TextField
-              fullWidth label="Password" type={showPassword ? 'text' : 'password'} margin="normal"
-              value={form.password} onChange={updateField('password')} required autoComplete="new-password"
-              helperText="At least 6 characters"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" aria-label="toggle password">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              fullWidth label="Confirm password" type={showConfirmPassword ? 'text' : 'password'} margin="normal"
-              value={form.confirmPassword} onChange={updateField('confirmPassword')} required autoComplete="new-password"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" aria-label="toggle confirm password">
-                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <Button
-              fullWidth type="submit" variant="contained" size="large"
-              disabled={loading} sx={{ mt: 2, py: 1.5 }}
-            >
+            <TextField fullWidth label="Full name" margin="normal" value={form.name} onChange={updateField('name')} required />
+            <TextField fullWidth label="Email" type="email" margin="normal" value={form.email} onChange={updateField('email')} required />
+            <TextField fullWidth label="Mobile (optional)" type="tel" margin="normal" value={form.mobile} onChange={updateField('mobile')} />
+            <TextField fullWidth label="Password" type={showPassword ? 'text' : 'password'} margin="normal" value={form.password} onChange={updateField('password')} required helperText="At least 6 characters"
+              InputProps={{ endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )}} />
+            <TextField fullWidth label="Confirm password" type={showConfirmPassword ? 'text' : 'password'} margin="normal" value={form.confirmPassword} onChange={updateField('confirmPassword')} required
+              InputProps={{ endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )}} />
+            <Button fullWidth type="submit" variant="contained" size="large" disabled={loading} sx={{ mt: 2, py: 1.5 }}>
               {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
             </Button>
           </form>
 
           <Divider sx={{ my: 2.5 }} />
-
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
             Already have an account?{' '}
-            <Link component={RouterLink} to="/login" underline="hover" fontWeight={600}>
-              Sign in
-            </Link>
+            <Link component={RouterLink} to="/login" underline="hover" fontWeight={600}>Sign in</Link>
           </Typography>
-
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-            New accounts are created as operators. An admin can assign plants to your profile.
+            Production signup uses emPOWER SaaS at accounts.empowerapp.in
           </Typography>
         </CardContent>
       </Card>

@@ -27,3 +27,6 @@ reports/
 
 # Docker volumes
 mysql_data/
+
+# Local H2 database files
+backend/data/

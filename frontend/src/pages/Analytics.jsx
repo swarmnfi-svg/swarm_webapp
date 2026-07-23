@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Card, CardContent, FormControl, InputLabel, Select, MenuItem,
   ToggleButtonGroup, ToggleButton, CircularProgress, Grid,
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { plantAPI, dashboardAPI } from '../services/api';
-import { SENSOR_LABELS } from '../utils/constants';
+import { SENSOR_LABELS, getSensorTypesForPlant } from '../utils/constants';
 import { subHours, subDays, subWeeks, subMonths, format } from 'date-fns';
 
 const chartColors = ['#0066CC', '#00A86B', '#DC3545', '#FFC107', '#6f42c1'];
@@ -26,6 +26,17 @@ export default function Analytics() {
     });
   }, []);
 
+  const sensorOptions = useMemo(
+    () => getSensorTypesForPlant(plants.find((p) => p.plantId === Number(selectedPlant))),
+    [plants, selectedPlant],
+  );
+
+  useEffect(() => {
+    if (sensorOptions.length > 0 && !sensorOptions.includes(sensorType)) {
+      setSensorType(sensorOptions[0]);
+    }
+  }, [sensorOptions, sensorType]);
+
   useEffect(() => {
     if (!selectedPlant) return;
     setLoading(true);
@@ -45,8 +56,6 @@ export default function Analytics() {
       setChartData(formatted);
     }).finally(() => setLoading(false));
   }, [selectedPlant, range, sensorType]);
-
-  const sensorOptions = ['TEMPERATURE', 'PH', 'PRESSURE', 'GAS_FLOW', 'METHANE'];
 
   return (
     <Box>

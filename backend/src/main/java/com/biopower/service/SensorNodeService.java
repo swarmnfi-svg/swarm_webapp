@@ -2,19 +2,23 @@ package com.biopower.service;
 
 import com.biopower.dto.request.SensorNodeRequest;
 import com.biopower.dto.response.SensorNodeResponse;
+import com.biopower.exception.BadRequestException;
 import com.biopower.exception.ResourceNotFoundException;
 import com.biopower.model.entity.Plant;
 import com.biopower.model.entity.SensorNode;
 import com.biopower.model.enums.NodeStatus;
+import com.biopower.model.enums.SensorType;
 import com.biopower.repository.SensorNodeRepository;
 import com.biopower.repository.SensorReadingRepository;
 import com.biopower.security.UserPrincipal;
+import com.biopower.util.PlantSensorTypes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,8 +49,10 @@ public class SensorNodeService {
 
     @Transactional
     public SensorNodeResponse createNode(SensorNodeRequest request, UserPrincipal principal) {
+        assertSuperAdmin(principal);
         assertCanManagePlant(principal, request.getPlantId());
         Plant plant = plantService.findPlant(request.getPlantId());
+        assertSensorTypeAllowed(plant, request.getSensorType());
         SensorNode node = SensorNode.builder()
                 .plant(plant)
                 .nodeName(request.getNodeName())
@@ -61,8 +67,11 @@ public class SensorNodeService {
 
     @Transactional
     public SensorNodeResponse updateNode(Long id, SensorNodeRequest request, UserPrincipal principal) {
+        assertSuperAdmin(principal);
         SensorNode node = findNode(id);
         assertCanManagePlant(principal, node.getPlant().getPlantId());
+        Plant targetPlant = plantService.findPlant(request.getPlantId());
+        assertSensorTypeAllowed(targetPlant, request.getSensorType());
         if (!node.getPlant().getPlantId().equals(request.getPlantId())) {
             assertCanManagePlant(principal, request.getPlantId());
         }
@@ -77,6 +86,7 @@ public class SensorNodeService {
 
     @Transactional
     public SensorNodeResponse toggleNode(Long id, boolean enable, UserPrincipal principal) {
+        assertSuperAdmin(principal);
         SensorNode node = findNode(id);
         assertCanManagePlant(principal, node.getPlant().getPlantId());
         node.setStatus(enable ? NodeStatus.ACTIVE : NodeStatus.INACTIVE);
@@ -84,7 +94,8 @@ public class SensorNodeService {
     }
 
     @Transactional
-    public void deleteNode(Long id) {
+    public void deleteNode(Long id, UserPrincipal principal) {
+        assertSuperAdmin(principal);
         sensorNodeRepository.delete(findNode(id));
     }
 
@@ -132,6 +143,19 @@ public class SensorNodeService {
     private void assertCanManagePlant(UserPrincipal principal, Long plantId) {
         if (!isSuperAdmin(principal) && !principal.getPlantIds().contains(plantId)) {
             throw new AccessDeniedException("You cannot manage sensors for this plant");
+        }
+    }
+
+    private void assertSuperAdmin(UserPrincipal principal) {
+        if (!isSuperAdmin(principal)) {
+            throw new AccessDeniedException("Only super admin can manage sensor hardware");
+        }
+    }
+
+    private void assertSensorTypeAllowed(Plant plant, SensorType sensorType) {
+        Set<SensorType> enabled = PlantSensorTypes.parse(plant.getEnabledSensorTypes());
+        if (!enabled.isEmpty() && !enabled.contains(sensorType)) {
+            throw new BadRequestException("Sensor type is not enabled for this project: " + sensorType);
         }
     }
 }

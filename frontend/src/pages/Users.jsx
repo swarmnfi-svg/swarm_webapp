@@ -3,15 +3,19 @@ import {
   Box, Typography, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
   Grid, Chip, IconButton, CircularProgress, FormControl, InputLabel, Select,
-  Checkbox, ListItemText, OutlinedInput, Alert,
+  Checkbox, ListItemText, OutlinedInput, Alert, Divider,
 } from '@mui/material';
 import { Add, Block, CheckCircle, Delete, Edit } from '@mui/icons-material';
 import { userAPI, plantAPI, sensorAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { SENSOR_LABELS } from '../utils/constants';
+import { SENSOR_LABELS, HARDWARE_PRESETS, getSensorTypesForPlant } from '../utils/constants';
 
 const ROLES = ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'];
 const emptyForm = { name: '', email: '', mobile: '', password: '', role: 'OPERATOR', plantIds: [], nodeIds: [] };
+const emptySensorForm = {
+  nodeName: '', sensorType: 'TEMPERATURE', firmwareVersion: 'v2.1.0',
+  batteryLevel: 100, signalStrength: 90, status: 'ACTIVE',
+};
 
 const normalizeIds = (ids) => (ids || []).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
 
@@ -30,6 +34,23 @@ export default function Users() {
   const [newPlantName, setNewPlantName] = useState('');
   const [addingPlant, setAddingPlant] = useState(false);
   const [creatingSensorSet, setCreatingSensorSet] = useState(false);
+  const [sensorForm, setSensorForm] = useState(emptySensorForm);
+  const [addingSensor, setAddingSensor] = useState(false);
+
+  const singlePlantId = useMemo(() => {
+    const ids = normalizeIds(form.plantIds);
+    return ids.length === 1 ? ids[0] : null;
+  }, [form.plantIds]);
+
+  const selectedPlant = useMemo(
+    () => (singlePlantId ? plants.find((p) => Number(p.plantId) === singlePlantId) : null),
+    [plants, singlePlantId],
+  );
+
+  const sensorTypeOptions = useMemo(
+    () => getSensorTypesForPlant(selectedPlant),
+    [selectedPlant],
+  );
 
   const manageablePlants = useMemo(() => {
     if (isSuperAdmin) return plants;
@@ -103,10 +124,19 @@ export default function Users() {
     sensorAPI.getAll().then(({ data }) => setSensorNodes(data.data || []));
   }, []);
 
+  useEffect(() => {
+    if (!singlePlantId || !sensorTypeOptions.length) return;
+    setSensorForm((prev) => ({
+      ...prev,
+      sensorType: sensorTypeOptions.includes(prev.sensorType) ? prev.sensorType : sensorTypeOptions[0],
+    }));
+  }, [singlePlantId, sensorTypeOptions]);
+
   const openCreate = () => {
     setEditId(null);
     setForm(emptyForm);
     setDialogSensors([]);
+    setSensorForm(emptySensorForm);
     setError('');
     setDialogOpen(true);
   };
@@ -188,18 +218,64 @@ export default function Users() {
     }
   };
 
+  const handleRegisterSensor = async () => {
+    if (!singlePlantId || !sensorForm.nodeName.trim()) return;
+    setAddingSensor(true);
+    setError('');
+    try {
+      const { data } = await sensorAPI.create({
+        plantId: singlePlantId,
+        nodeName: sensorForm.nodeName.trim(),
+        sensorType: sensorForm.sensorType,
+        firmwareVersion: sensorForm.firmwareVersion || 'v2.1.0',
+        batteryLevel: Number(sensorForm.batteryLevel) || 100,
+        signalStrength: Number(sensorForm.signalStrength) || 90,
+        status: sensorForm.status || 'ACTIVE',
+      });
+      const created = data.data;
+      setForm((prev) => ({
+        ...prev,
+        nodeIds: [...new Set([...normalizeIds(prev.nodeIds), Number(created.nodeId)])],
+      }));
+      setSensorForm({
+        ...emptySensorForm,
+        sensorType: sensorTypeOptions[0] || 'TEMPERATURE',
+      });
+      await loadSensorsForPlants([singlePlantId]);
+      const allRes = await sensorAPI.getAll();
+      setSensorNodes(allRes.data.data || []);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to register sensor');
+    } finally {
+      setAddingSensor(false);
+    }
+  };
+
   const handleCreatePendingSensorSet = async () => {
     const plantIds = normalizeIds(form.plantIds);
     if (plantIds.length !== 1) return;
     const plantId = plantIds[0];
+    const plant = plants.find((p) => Number(p.plantId) === plantId);
+    const enabled = plant?.enabledSensorTypes || [];
+    const espTypes = HARDWARE_PRESETS.ESP_HUB.filter(
+      (type) => !enabled.length || enabled.includes(type),
+    );
+    if (!espTypes.length) {
+      setError('Enable ESP hub sensors in Plants → hardware profile before creating a pending set.');
+      return;
+    }
     setCreatingSensorSet(true);
     setError('');
     try {
-      const payloads = [
-        { nodeName: 'Pending ESP Temperature', sensorType: 'TEMPERATURE' },
-        { nodeName: 'Pending ESP Humidity', sensorType: 'HUMIDITY' },
-        { nodeName: 'Pending ESP Gas', sensorType: 'METHANE' },
-      ].map((item) => ({
+      const labelByType = {
+        TEMPERATURE: 'Pending ESP Temperature',
+        HUMIDITY: 'Pending ESP Humidity',
+        METHANE: 'Pending ESP Gas',
+      };
+      const payloads = espTypes.map((sensorType) => ({
+        nodeName: labelByType[sensorType] || `Pending ESP ${sensorType}`,
+        sensorType,
+      })).map((item) => ({
         plantId,
         ...item,
         firmwareVersion: 'pending',
@@ -373,6 +449,79 @@ export default function Users() {
               </Grid>
             )}
 
+            {isSuperAdmin && singlePlantId && (
+              <Grid item xs={12}>
+                <Divider sx={{ mb: 2 }} />
+                <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+                  Register Hardware
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+                  Add a sensor node for {selectedPlant?.plantName || 'selected plant'}.
+                  {sensorTypeOptions.length < 3 && ' Enable hardware types in Plants first.'}
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Node Name"
+                      value={sensorForm.nodeName}
+                      onChange={(e) => setSensorForm({ ...sensorForm, nodeName: e.target.value })}
+                      placeholder="e.g. Digester Pressure Transmitter"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      select
+                      label="Hardware Type"
+                      value={sensorForm.sensorType}
+                      onChange={(e) => setSensorForm({ ...sensorForm, sensorType: e.target.value })}
+                    >
+                      {sensorTypeOptions.map((t) => (
+                        <MenuItem key={t} value={t}>{SENSOR_LABELS[t] || t}</MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      label="Firmware"
+                      value={sensorForm.firmwareVersion}
+                      onChange={(e) => setSensorForm({ ...sensorForm, firmwareVersion: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <TextField
+                      fullWidth
+                      label="Battery %"
+                      type="number"
+                      value={sensorForm.batteryLevel}
+                      onChange={(e) => setSensorForm({ ...sensorForm, batteryLevel: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={6} sm={4}>
+                    <TextField
+                      fullWidth
+                      label="Signal %"
+                      type="number"
+                      value={sensorForm.signalStrength}
+                      onChange={(e) => setSensorForm({ ...sensorForm, signalStrength: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      disabled={addingSensor || !sensorForm.nodeName.trim()}
+                      onClick={handleRegisterSensor}
+                    >
+                      {addingSensor ? <CircularProgress size={16} /> : 'Add Sensor'}
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Grid>
+            )}
+
             <Grid item xs={12}>
               {sensorDevices.length > 0 && (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
@@ -432,17 +581,21 @@ export default function Users() {
               ) : !loadingSensors && availableSensors.length === 0 ? (
                 <>
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                    No sensors found. Create a pending ESP sensor set now, then pair the physical ESP later.
+                    {isSuperAdmin
+                      ? 'No sensors yet. Register hardware above or create a pending ESP sensor set to pair later.'
+                      : 'No sensors registered for selected plants. Contact super admin to add hardware.'}
                   </Typography>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    sx={{ mt: 1 }}
-                    disabled={normalizeIds(form.plantIds).length !== 1 || creatingSensorSet}
-                    onClick={handleCreatePendingSensorSet}
-                  >
-                    {creatingSensorSet ? <CircularProgress size={16} /> : 'Create Pending ESP Sensor Set'}
-                  </Button>
+                  {isSuperAdmin && singlePlantId && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{ mt: 1 }}
+                      disabled={creatingSensorSet}
+                      onClick={handleCreatePendingSensorSet}
+                    >
+                      {creatingSensorSet ? <CircularProgress size={16} /> : 'Create Pending ESP Sensor Set'}
+                    </Button>
+                  )}
                 </>
               ) : null}
             </Grid>

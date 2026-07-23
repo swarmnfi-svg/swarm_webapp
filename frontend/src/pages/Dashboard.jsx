@@ -13,12 +13,12 @@ import { plantAPI, dashboardAPI, alertAPI, deviceAPI } from '../services/api';
 import { SENSOR_LABELS, SENSOR_UNITS, getHealthColor, formatDate } from '../utils/constants';
 
 const sensorIcons = {
-  PH: <Opacity />, TEMPERATURE: <Thermostat />, HUMIDITY: <Thermostat />, PRESSURE: <Speed />,
-  GAS_FLOW: <Air />, METHANE: <LocalFireDepartment />, CARBON_DIOXIDE: <Co2 />,
-  HYDROGEN_SULFIDE: <Warning />, AMMONIA: <Science />,
+  PH: <Opacity />, TEMPERATURE: <Thermostat />, TEMPERATURE_TRANSMITTER: <Thermostat />,
+  HUMIDITY: <Thermostat />, PRESSURE: <Speed />, PRESSURE_TRANSMITTER: <Speed />,
+  GAS_FLOW: <Air />, FLOW_TRANSMITTER: <Air />, METHANE: <LocalFireDepartment />,
+  CARBON_DIOXIDE: <Co2 />, HYDROGEN_SULFIDE: <Warning />, AMMONIA: <Science />,
+  LIQUID_LEVEL: <Opacity />,
 };
-
-const keySensors = ['PH', 'TEMPERATURE', 'HUMIDITY', 'PRESSURE', 'GAS_FLOW', 'METHANE', 'CARBON_DIOXIDE', 'HYDROGEN_SULFIDE', 'AMMONIA'];
 
 export default function Dashboard() {
   const [plants, setPlants] = useState([]);
@@ -83,6 +83,7 @@ export default function Dashboard() {
 
   const readings = dashboard?.currentReadings || {};
   const pairedDevices = dashboard?.pairedDevices || [];
+  const visibleSensorTypes = dashboard?.visibleSensorTypes || [];
   const healthScore = dashboard?.healthScore || 0;
   const healthStatus = dashboard?.healthStatus || 'GOOD';
 
@@ -212,23 +213,33 @@ export default function Dashboard() {
       </Card>
 
       <Typography variant="h6" sx={{ mb: 2 }}>Sensor Overview</Typography>
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {keySensors.map((type) => (
-          <Grid item xs={6} sm={4} md={3} key={type}>
-            <Card>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ color: 'primary.main' }}>{sensorIcons[type]}</Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">{SENSOR_LABELS[type]}</Typography>
-                  <Typography variant="h6" fontWeight={600}>
-                    {readings[type] != null ? readings[type].toFixed(1) : '--'} {SENSOR_UNITS[type]}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {visibleSensorTypes.length === 0 ? (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography color="text.secondary">
+              No sensors configured for this project yet. Super admin can enable hardware under Plants.
+            </Typography>
+          </CardContent>
+        </Card>
+      ) : (
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {visibleSensorTypes.map((type) => (
+            <Grid item xs={6} sm={4} md={3} key={type}>
+              <Card>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ color: 'primary.main' }}>{sensorIcons[type] || <Thermostat />}</Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">{SENSOR_LABELS[type] || type}</Typography>
+                    <Typography variant="h6" fontWeight={600}>
+                      {readings[type] != null ? readings[type].toFixed(1) : '--'} {SENSOR_UNITS[type] || ''}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       <Typography variant="h6" sx={{ mb: 2 }}>Active Alerts</Typography>
       <Card>

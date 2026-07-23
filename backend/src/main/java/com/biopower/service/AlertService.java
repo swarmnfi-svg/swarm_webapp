@@ -7,6 +7,7 @@ import com.biopower.model.enums.*;
 import com.biopower.repository.AlertRepository;
 import com.biopower.repository.PlantRepository;
 import com.biopower.repository.SensorNodeRepository;
+import com.biopower.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ public class AlertService {
     private final AlertRepository alertRepository;
     private final PlantRepository plantRepository;
     private final SensorNodeRepository sensorNodeRepository;
+    private final PlantAccessService plantAccessService;
 
     @Value("${biopower.alert.ph-min}")
     private double phMin;
@@ -45,9 +47,9 @@ public class AlertService {
     public void evaluateReading(SensorReading reading) {
         switch (reading.getSensorType()) {
             case PH -> evaluatePh(reading);
-            case TEMPERATURE -> evaluateTemperature(reading);
-            case PRESSURE -> evaluatePressure(reading);
-            case GAS_FLOW -> evaluateGasFlow(reading);
+            case TEMPERATURE, TEMPERATURE_TRANSMITTER -> evaluateTemperature(reading);
+            case PRESSURE, PRESSURE_TRANSMITTER -> evaluatePressure(reading);
+            case GAS_FLOW, FLOW_TRANSMITTER -> evaluateGasFlow(reading);
             default -> {}
         }
     }
@@ -147,6 +149,53 @@ public class AlertService {
     }
 
     @Transactional(readOnly = true)
+    public List<AlertResponse> getAlertsForUser(UserPrincipal principal, Long plantId, AlertStatus status) {
+        if (plantId != null) {
+            plantAccessService.assertCanAccessPlant(principal, plantId);
+            if (status != null) {
+                return getAlertsByPlantAndStatus(plantId, status);
+            }
+            return getAlertsByPlant(plantId);
+        }
+
+        List<Long> plantIds = plantAccessService.resolveAccessiblePlantIds(principal);
+        if (plantIds.isEmpty()) {
+            return List.of();
+        }
+        List<Alert> alerts = status != null
+                ? alertRepository.findByPlantIdInAndStatus(plantIds, status)
+                : alertRepository.findByPlantIdInOrderByCreatedAtDesc(plantIds);
+        return filterAlertsForPrincipal(alerts, principal).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public long countActiveAlertsForUser(UserPrincipal principal) {
+        return countAlertsForUser(principal, AlertStatus.ACTIVE);
+    }
+
+    @Transactional(readOnly = true)
+    public long countAlertsForUser(UserPrincipal principal, AlertStatus status) {
+        List<Long> plantIds = plantAccessService.resolveAccessiblePlantIds(principal);
+        if (plantIds.isEmpty()) {
+            return 0;
+        }
+        List<Alert> alerts = alertRepository.findByPlantIdInAndStatus(plantIds, status);
+        return filterAlertsForPrincipal(alerts, principal).size();
+    }
+
+    private List<Alert> filterAlertsForPrincipal(List<Alert> alerts, UserPrincipal principal) {
+        List<Long> nodeIds = plantAccessService.resolveAssignedNodeIds(principal);
+        if (nodeIds == null || nodeIds.isEmpty()) {
+            return alerts;
+        }
+        return alerts.stream()
+                .filter(alert -> alert.getNodeId() == null || nodeIds.contains(alert.getNodeId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<AlertResponse> getAllAlerts() {
         return alertRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
@@ -169,8 +218,9 @@ public class AlertService {
     }
 
     @Transactional
-    public AlertResponse acknowledgeAlert(Long id, Long userId) {
+    public AlertResponse acknowledgeAlert(Long id, Long userId, UserPrincipal principal) {
         Alert alert = findAlert(id);
+        plantAccessService.assertCanAccessPlant(principal, alert.getPlantId());
         alert.setStatus(AlertStatus.ACKNOWLEDGED);
         alert.setAcknowledgedBy(userId);
         alert.setAcknowledgedAt(LocalDateTime.now());
@@ -178,8 +228,9 @@ public class AlertService {
     }
 
     @Transactional
-    public AlertResponse resolveAlert(Long id) {
+    public AlertResponse resolveAlert(Long id, UserPrincipal principal) {
         Alert alert = findAlert(id);
+        plantAccessService.assertCanAccessPlant(principal, alert.getPlantId());
         alert.setStatus(AlertStatus.RESOLVED);
         alert.setResolvedAt(LocalDateTime.now());
         return toResponse(alertRepository.save(alert));

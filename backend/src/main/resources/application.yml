@@ -44,6 +44,14 @@ mqtt:
   password: ${MQTT_PASSWORD:}
 
 biopower:
+  identity:
+    mode: ${IDENTITY_MODE:local}
+    saas:
+      accounts-url: ${SAAS_ACCOUNTS_URL:https://accounts.empowerapp.in}
+      client-id: ${SAAS_CLIENT_ID:swarm_webapp}
+      client-secret: ${SAAS_CLIENT_SECRET:}
+      app-url: ${SAAS_APP_URL:http://localhost:3000}
+      token-path: /api/oauth/token
   alert:
     ph-min: 6.5
     ph-max: 8.5

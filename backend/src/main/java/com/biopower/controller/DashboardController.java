@@ -50,30 +50,24 @@ public class DashboardController {
     @GetMapping("/alerts")
     public ResponseEntity<ApiResponse<List<AlertResponse>>> getAlerts(
             @RequestParam(required = false) Long plantId,
-            @RequestParam(required = false) AlertStatus status) {
-        List<AlertResponse> alerts;
-        if (plantId != null && status != null) {
-            alerts = alertService.getAlertsByPlantAndStatus(plantId, status);
-        } else if (plantId != null) {
-            alerts = alertService.getAlertsByPlant(plantId);
-        } else if (status != null) {
-            alerts = alertService.getAlertsByStatus(status);
-        } else {
-            alerts = alertService.getAllAlerts();
-        }
-        return ResponseEntity.ok(ApiResponse.success(alerts));
+            @RequestParam(required = false) AlertStatus status,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                alertService.getAlertsForUser(principal, plantId, status)));
     }
 
     @PatchMapping("/alerts/{id}/acknowledge")
     public ResponseEntity<ApiResponse<AlertResponse>> acknowledgeAlert(
             @PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(ApiResponse.success(
-                "Alert acknowledged", alertService.acknowledgeAlert(id, principal.getId())));
+                "Alert acknowledged", alertService.acknowledgeAlert(id, principal.getId(), principal)));
     }
 
     @PatchMapping("/alerts/{id}/resolve")
-    public ResponseEntity<ApiResponse<AlertResponse>> resolveAlert(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success("Alert resolved", alertService.resolveAlert(id)));
+    public ResponseEntity<ApiResponse<AlertResponse>> resolveAlert(
+            @PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Alert resolved", alertService.resolveAlert(id, principal)));
     }
 
     @GetMapping("/ai/recommendations/{plantId}")

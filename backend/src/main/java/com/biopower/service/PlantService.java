@@ -8,18 +8,21 @@ import com.biopower.model.enums.AlertStatus;
 import com.biopower.model.enums.HealthStatus;
 import com.biopower.model.enums.NodeStatus;
 import com.biopower.model.enums.PlantStatus;
+import com.biopower.model.enums.SensorType;
 import com.biopower.repository.AiRecommendationRepository;
 import com.biopower.repository.AlertRepository;
 import com.biopower.repository.PlantRepository;
 import com.biopower.repository.SensorNodeRepository;
 import com.biopower.repository.UserRepository;
 import com.biopower.security.UserPrincipal;
+import com.biopower.util.PlantSensorTypes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +63,9 @@ public class PlantService {
                 .feedstockType(request.getFeedstockType())
                 .installationDate(request.getInstallationDate())
                 .status(request.getStatus() != null ? request.getStatus() : PlantStatus.ACTIVE)
+                .enabledSensorTypes(plantAccessService.isSuperAdmin(principal)
+                        ? PlantSensorTypes.serialize(Set.copyOf(PlantSensorTypes.parseList(request.getEnabledSensorTypes())))
+                        : null)
                 .build();
         plant = plantRepository.save(plant);
         assignPlantToCreator(plant, principal);
@@ -92,6 +98,13 @@ public class PlantService {
         plant.setFeedstockType(request.getFeedstockType());
         plant.setInstallationDate(request.getInstallationDate());
         if (request.getStatus() != null) plant.setStatus(request.getStatus());
+        if (request.getEnabledSensorTypes() != null) {
+            if (!plantAccessService.isSuperAdmin(principal)) {
+                throw new AccessDeniedException("Only super admin can configure project hardware");
+            }
+            plant.setEnabledSensorTypes(PlantSensorTypes.serialize(
+                    Set.copyOf(PlantSensorTypes.parseList(request.getEnabledSensorTypes()))));
+        }
         return toResponse(plantRepository.save(plant));
     }
 
@@ -125,6 +138,8 @@ public class PlantService {
                 .activeAlerts(activeAlerts)
                 .healthScore(healthScore)
                 .healthStatus(healthStatus)
+                .enabledSensorTypes(PlantSensorTypes.parse(plant.getEnabledSensorTypes()).stream()
+                        .map(SensorType::name).collect(Collectors.toList()))
                 .createdAt(plant.getCreatedAt())
                 .build();
     }

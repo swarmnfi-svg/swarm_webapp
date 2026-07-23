@@ -47,6 +47,10 @@ public class Plant {
     @Builder.Default
     private PlantStatus status = PlantStatus.ACTIVE;
 
+    /** Comma-separated SensorType names enabled for this SaaS project/plant dashboard. */
+    @Column(name = "enabled_sensor_types", length = 1000)
+    private String enabledSensorTypes;
+
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<SensorNode> sensorNodes = new ArrayList<>();

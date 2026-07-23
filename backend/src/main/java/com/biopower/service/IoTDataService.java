@@ -38,13 +38,17 @@ public class IoTDataService {
     private SensorReadingResponse persistReading(IoTDataRequest request) {
         SensorNode node = sensorNodeRepository.findByNodeIdAndPlantPlantId(request.getNodeId(), request.getPlantId())
                 .orElseThrow(() -> new BadRequestException("Invalid plant/node combination"));
+        if (request.getSensorType() != node.getSensorType()) {
+            throw new BadRequestException("Sensor type does not match registered node: expected "
+                    + node.getSensorType());
+        }
 
         LocalDateTime recordedAt = request.getTimestamp() != null ? request.getTimestamp() : LocalDateTime.now();
 
         SensorReading reading = SensorReading.builder()
                 .plantId(request.getPlantId())
                 .nodeId(request.getNodeId())
-                .sensorType(request.getSensorType())
+                .sensorType(node.getSensorType())
                 .value(request.getValue())
                 .recordedAt(recordedAt)
                 .build();
