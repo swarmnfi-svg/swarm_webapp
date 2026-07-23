@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
@@ -6,7 +6,6 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, PersonAdd } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import { redirectToSso } from '../utils/sso';
 import Logo from '../components/common/Logo';
 
 const authShellSx = {
@@ -35,13 +34,8 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
-  const [checkingSso, setCheckingSso] = useState(true);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    redirectToSso('signup').catch(() => {}).finally(() => setCheckingSso(false));
-  }, []);
 
   const updateField = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -74,14 +68,6 @@ export default function Signup() {
       }
     }
   };
-
-  if (checkingSso) {
-    return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={authShellSx}>
@@ -130,9 +116,6 @@ export default function Signup() {
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
             Already have an account?{' '}
             <Link component={RouterLink} to="/login" underline="hover" fontWeight={600}>Sign in</Link>
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-            Production signup uses emPOWER SaaS at accounts.empowerapp.in
           </Typography>
         </CardContent>
       </Card>

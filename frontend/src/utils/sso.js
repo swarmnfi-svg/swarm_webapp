@@ -13,7 +13,8 @@ export async function redirectToSso(flow) {
   const config = await loadSsoConfig();
   if (!config?.saasEnabled) return false;
   const fetchUrl = flow === 'signup' ? authAPI.ssoSignupUrl : authAPI.ssoLoginUrl;
-  const { data } = await fetchUrl();
+  const returnTo = `${window.location.origin}/dashboard`;
+  const { data } = await fetchUrl(returnTo);
   window.location.href = data.data;
   return true;
 }
