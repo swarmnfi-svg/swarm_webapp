@@ -103,7 +103,7 @@ def build():
     pdf.section_title("1. Project Overview")
     pdf.body(
         "SWARM is a web platform for monitoring biogas and waste-to-energy plants. "
-        "It collects live sensor data from ESP8266 hardware hubs, stores readings in a database, "
+        "It collects live sensor data from SWARM MODEL hardware hubs, stores readings in a database, "
         "displays dashboards and analytics, generates alerts, and provides AI-based health recommendations."
     )
     pdf.sub_title("Supported plant types")
@@ -122,7 +122,7 @@ def build():
         "Dashboard - live plant health and sensor readings",
         "Plants - create and configure projects (hardware profiles)",
         "Sensor Nodes - register installed hardware per plant",
-        "Connect Device - pair ESP8266 sensor hubs on the local network",
+        "Connect Device - pair SWARM MODEL sensor hubs on the local network",
         "Analytics - historical charts (hour/day/week/month)",
         "Alerts - threshold breaches with acknowledge/resolve workflow",
         "AI Recommendations - rule-based plant health analysis",
@@ -143,7 +143,7 @@ def build():
     pdf.bullet("Backend: Spring Boot 3, Java 17, JWT authentication")
     pdf.bullet("Database: MySQL 8 (Docker) or H2 in-memory (local dev)")
     pdf.bullet("IoT ingress: REST API (/api/iot/data, /api/iot/batch) and MQTT (Mosquitto)")
-    pdf.bullet("Firmware: ESP8266 + DHT11 (temp/humidity) + MQ5 (methane/gas)")
+    pdf.bullet("Firmware: SWARM MODEL + DHT11 (temp/humidity) + MQ5 (methane/gas)")
 
     pdf.sub_title("Repository structure")
     pdf.code_block(
@@ -151,7 +151,7 @@ def build():
         "  backend/     Spring Boot REST API\n"
         "  frontend/    React web dashboard\n"
         "  database/    MySQL schema\n"
-        "  firmware/    ESP8266 Arduino sketch\n"
+        "  firmware/    SWARM MODEL Arduino sketch\n"
         "  docker/      MQTT and deployment configs\n"
         "  docs/        Documentation"
     )
@@ -159,7 +159,7 @@ def build():
     pdf.sub_title("High-level data flow")
     pdf.numbered(
         1,
-        "ESP8266 hub reads DHT11 and MQ5 sensors every 5 seconds on the plant LAN.",
+        "SWARM MODEL hub reads DHT11 and MQ5 sensors every 5 seconds on the plant LAN.",
     )
     pdf.numbered(
         2,
@@ -266,7 +266,7 @@ def build():
     pdf.numbered(10, "Assign those sensor node IDs to the operator. Save user.")
     pdf.numbered(
         11,
-        "Flash ESP8266 firmware (firmware/swarm_esp8266_hub/swarm_esp8266_hub.ino) with device password.",
+        "Flash SWARM MODEL firmware (firmware/swarm_esp8266_hub/swarm_esp8266_hub.ino) with device password.",
     )
     pdf.numbered(12, "Field user pairs device via Connect Device (see Section 7).")
 
@@ -286,14 +286,14 @@ def build():
 
     # 7. ESP pairing
     pdf.add_page()
-    pdf.section_title("7. ESP8266 Device Pairing Flow")
+    pdf.section_title("7. SWARM MODEL Device Pairing Flow")
     pdf.body(
         "The Connect Device page uses a 3-step wizard: Connect to ESP, Check sensors, Pair with SWARM."
     )
 
     pdf.sub_title("Phase A - Admin first flash (one time per board)")
     pdf.numbered(1, "Open firmware/swarm_esp8266_hub/swarm_esp8266_hub.ino in Arduino IDE.")
-    pdf.numbered(2, "Set DEVICE_PASSWORD (default: 1234). Flash ESP8266 over USB.")
+    pdf.numbered(2, "Set DEVICE_PASSWORD (default: 1234). Flash SWARM MODEL over USB.")
     pdf.numbered(3, "Give device password to the field operator.")
 
     pdf.sub_title("Phase B - Field Wi-Fi setup (phone)")
@@ -472,7 +472,7 @@ def build():
         ("GET /api/plants", "JWT", "List plants (scoped by role)"),
         ("POST /api/plants", "Admin", "Create plant with hardware profile"),
         ("POST /api/sensor-nodes", "Admin", "Register sensor node"),
-        ("POST /api/devices/pair", "JWT", "Pair ESP8266 to plant"),
+        ("POST /api/devices/pair", "JWT", "Pair SWARM MODEL to plant"),
         ("POST /api/devices/sync-readings", "JWT", "Pull live ESP data"),
         ("POST /api/iot/batch", "Public", "ESP firmware data ingest"),
         ("GET /api/dashboard/{plantId}", "JWT", "Live dashboard data"),

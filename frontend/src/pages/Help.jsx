@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import {
   MenuBook, ExpandMore, BluetoothConnected, CheckCircle, Security,
+  PrecisionManufacturing,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
@@ -51,7 +52,7 @@ function Section({ id, title, children, defaultExpanded = false }) {
 }
 
 export default function Help() {
-  const { user, isSuperAdmin, isPlantAdmin, isOperator, canManageUsers } = useAuth();
+  const { user, isSuperAdmin, isPlantAdmin, isOperator, canManageUsers, canManagePlants } = useAuth();
   const navigate = useNavigate();
 
   const roleLabel = user?.role?.replace('_', ' ') || 'User';
@@ -60,12 +61,12 @@ export default function Help() {
 
   const focusChips = useMemo(() => {
     if (isSuperAdmin) {
-      return ['First flash & Unique ID', 'Wi-Fi setup', 'Pair devices', 'Users & plants'];
+      return ['Plant HMI controls', 'First flash & Unique ID', 'Wi-Fi setup', 'Pair devices', 'Users & plants'];
     }
     if (isPlantAdmin) {
-      return ['Unique ID handoff', 'Wi-Fi setup', 'Pair & assign operators', 'Dashboard check'];
+      return ['Plant HMI controls', 'Unique ID handoff', 'Wi-Fi setup', 'Pair & assign operators', 'Dashboard check'];
     }
-    return ['Join setup hotspot', 'Change site Wi-Fi', 'Connect Device', 'Dashboard readings'];
+    return ['Plant HMI (view)', 'Join setup hotspot', 'Change site Wi-Fi', 'Connect Device', 'Dashboard readings'];
   }, [isSuperAdmin, isPlantAdmin]);
 
   return (
@@ -76,7 +77,8 @@ export default function Help() {
       </Stack>
 
       <Typography color="text.secondary" sx={{ mb: 2 }}>
-        ESP8266 Sensor Hub connection guide for Temperature, Humidity, and Methane (MQ5).
+        SWARM guides for the <strong>Plant HMI</strong> (process flow diagram) and the
+        <strong> SWARM MODEL Sensor Hub</strong> (Temperature, Humidity, Methane).
         Content is filtered for your role: <strong>{roleLabel}</strong>.
       </Typography>
 
@@ -90,6 +92,13 @@ export default function Help() {
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 3 }}>
         <Button
           variant="contained"
+          startIcon={<PrecisionManufacturing />}
+          onClick={() => navigate('/plant-hmi')}
+        >
+          Open Plant HMI
+        </Button>
+        <Button
+          variant="outlined"
           startIcon={<BluetoothConnected />}
           onClick={() => navigate('/connect-device')}
         >
@@ -236,7 +245,64 @@ export default function Help() {
         </Button>
       </Section>
 
-      <Section id="credentials" title={`${showAdminFlash ? '6' : '5'}. Credentials cheat sheet`}>
+      <Section id="plant-hmi" title={`${showAdminFlash ? '6' : '5'}. Plant HMI`} defaultExpanded={canManagePlants}>
+        <Typography paragraph>
+          The Plant HMI shows the biogas plant process flow diagram with live readings, animated pipelines,
+          and block start/stop controls. Commands update server simulation state (not real PLCs in demo mode).
+        </Typography>
+
+        <Typography fontWeight={600} sx={{ mb: 1 }}>Open the HMI</Typography>
+        <List dense>
+          <ListItem><ListItemText primary="Sidebar → Plant HMI (or /plant-hmi)" /></ListItem>
+          <ListItem><ListItemText primary="Select the Tata Steel / P&ID plant from the dropdown if prompted." /></ListItem>
+        </List>
+
+        <Typography fontWeight={600} sx={{ mt: 2, mb: 1 }}>Master bus (Plant Admin / Super Admin)</Typography>
+        <List dense>
+          <ListItem><ListItemText primary="Click Energize bus before any motor or pump can start." /></ListItem>
+          <ListItem><ListItemText primary="De-energize bus stops all equipment and blocks further starts." /></ListItem>
+        </List>
+
+        <Typography fontWeight={600} sx={{ mt: 2, mb: 1 }}>Process flow diagram</Typography>
+        <List dense>
+          <ListItem><ListItemText primary="Block buttons: Belt Conveyor, Crusher, Pre Treatment Tank, Motor, Main Digester, Slurry Storage, Treatment Water, Equalization." /></ListItem>
+          <ListItem><ListItemText primary="All On — starts all eight blocks at once (skips blocks already running)." /></ListItem>
+          <ListItem><ListItemText primary="Green = running, Red = off, Yellow = fault (when bus energized)." /></ListItem>
+          <ListItem><ListItemText primary="Live Readings panel — equipment tags and instruments (FIT, PIT, LIT)." /></ListItem>
+          <ListItem><ListItemText primary="Maximize icon — full-screen diagram; Minimize to return." /></ListItem>
+          <ListItem><ListItemText primary="Pipeline animation follows active blocks and bus state." /></ListItem>
+        </List>
+
+        <Typography fontWeight={600} sx={{ mt: 2, mb: 1 }}>Pre-treatment pumps (PS / PW)</Typography>
+        <List dense>
+          <ListItem><ListItemText primary="PW (P-101B) — duty pump; controlled by Pre Treatment Tank block." /></ListItem>
+          <ListItem><ListItemText primary="PS (P-101A) — standby; PS → PW line is off while PW is running." /></ListItem>
+          <ListItem><ListItemText primary="When PW stops and PS runs, standby path PS → PW → digester animates." /></ListItem>
+        </List>
+
+        <Typography fontWeight={600} sx={{ mt: 2, mb: 1 }}>HMI tabs</Typography>
+        <List dense>
+          <ListItem><ListItemText primary="Overview, Feed & Pretreatment, Digester, Gas, Slurry & ETP — zone views with diagram highlight." /></ListItem>
+          <ListItem><ListItemText primary="Alarms, Trends, Diagnostics, Audit — monitoring and command history." /></ListItem>
+        </List>
+
+        {!canManagePlants && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Operators can view the HMI and readings but cannot energize the bus or start/stop equipment.
+          </Alert>
+        )}
+
+        <Button
+          sx={{ mt: 2 }}
+          variant="outlined"
+          startIcon={<PrecisionManufacturing />}
+          onClick={() => navigate('/plant-hmi')}
+        >
+          Go to Plant HMI
+        </Button>
+      </Section>
+
+      <Section id="credentials" title={`${showAdminFlash ? '7' : '6'}. Credentials cheat sheet`}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -270,7 +336,7 @@ export default function Help() {
         </Table>
       </Section>
 
-      <Section id="troubleshoot" title={`${showAdminFlash ? '7' : '6'}. Troubleshooting`}>
+      <Section id="troubleshoot" title={`${showAdminFlash ? '8' : '7'}. Troubleshooting`}>
         <List dense>
           <ListItem>
             <ListItemText
@@ -302,6 +368,18 @@ export default function Help() {
               secondary="SWARM URL must be LAN IP, not localhost. Check plant selection on Dashboard."
             />
           </ListItem>
+          <ListItem>
+            <ListItemText
+              primary="Plant HMI blocks greyed out"
+              secondary="Energize bus first. Operators cannot control — ask Plant Admin."
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary="HMI flow lines not animating"
+              secondary="Related block must be running and bus energized. Hard refresh if diagram looks stale."
+            />
+          </ListItem>
         </List>
         {isPlantAdmin && !isSuperAdmin && (
           <Alert severity="info" sx={{ mt: 1 }}>
@@ -319,7 +397,9 @@ export default function Help() {
 
       <Divider sx={{ my: 3 }} />
       <Typography variant="body2" color="text.secondary">
-        Full markdown copy also lives in the repo at <code>docs/ESP_SENSOR_HUB_MANUAL.md</code>.
+        Full markdown copies: <code>docs/USER_MANUAL.md</code> (complete guide) and
+        <code>docs/ESP_SENSOR_HUB_MANUAL.md</code> (sensor hub detail).
+        HMI technical reference: <code>docs/PLANT_HMI.md</code>.
       </Typography>
     </Box>
   );

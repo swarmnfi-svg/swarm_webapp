@@ -84,21 +84,25 @@ public class TataSteelDemoInitializer implements CommandLineRunner {
                 .build());
 
         List<SensorSeed> sensors = List.of(
-                new SensorSeed("LIT-103 Main Digester T103 Level", SensorType.LIQUID_LEVEL, "SW-RIO-02", 72.5),
-                new SensorSeed("PIT-103 Digester Gas Space Pressure", SensorType.PRESSURE, "SW-RIO-02", 1.45),
-                new SensorSeed("TIT-103A Digester Temperature", SensorType.TEMPERATURE, "SW-RIO-02", 39.8),
-                new SensorSeed("TIT-103B Digester Temperature", SensorType.TEMPERATURE_TRANSMITTER, "SW-RIO-02", 40.2),
-                new SensorSeed("AIT-103 Digester Slurry pH", SensorType.PH, "SW-RIO-02", 7.18),
-                new SensorSeed("FIT-201 Raw Biogas Header Flow", SensorType.GAS_FLOW, "SW-RIO-04", 11.4),
+                new SensorSeed("FIT-101 Raw Water Inlet Flow", SensorType.FLOW_TRANSMITTER, "SW-RIO-01", 4.2),
+                new SensorSeed("LIT-101 T-102 Level", SensorType.LIQUID_LEVEL, "SW-RIO-01", 58.0),
+                new SensorSeed("TIT-101 T-102 Temperature", SensorType.TEMPERATURE_TRANSMITTER, "SW-RIO-01", 42.5),
+                new SensorSeed("FIT-102 Slurry Feed Flow", SensorType.FLOW_TRANSMITTER, "SW-RIO-01", 8.6),
+                new SensorSeed("LIT-103 D-101 Slurry Level", SensorType.LIQUID_LEVEL, "SW-RIO-02", 72.5),
+                new SensorSeed("PIT-103 D-101 Gas Space Pressure", SensorType.PRESSURE_TRANSMITTER, "SW-RIO-02", 1.45),
+                new SensorSeed("TIT-103A D-101 Temperature", SensorType.TEMPERATURE_TRANSMITTER, "SW-RIO-02", 39.8),
+                new SensorSeed("TIT-103B D-101 Temperature", SensorType.TEMPERATURE_TRANSMITTER, "SW-RIO-02", 40.2),
+                new SensorSeed("AIT-103 D-101 Slurry pH", SensorType.PH, "SW-RIO-02", 7.18),
+                new SensorSeed("LIT-201 T-105 Slurry Storage Level", SensorType.LIQUID_LEVEL, "SW-RIO-03", 61.0),
+                new SensorSeed("FIT-201 Slurry Flow after P-102", SensorType.FLOW_TRANSMITTER, "SW-RIO-03", 2.4),
+                new SensorSeed("PIT-202 Slurry Line Pressure", SensorType.PRESSURE_TRANSMITTER, "SW-RIO-03", 0.85),
+                new SensorSeed("PDT-201 Scrubber S-101 Differential Pressure", SensorType.PRESSURE, "SW-RIO-04", 0.38),
+                new SensorSeed("AIT-201 Biogas H2S", SensorType.HYDROGEN_SULFIDE, "SW-RIO-04", 42.0),
                 new SensorSeed("AIT-202 Treated Biogas CH4", SensorType.METHANE, "SW-RIO-04", 58.6),
-                new SensorSeed("AIT-202 Treated Biogas CO2", SensorType.CARBON_DIOXIDE, "SW-RIO-04", 37.8),
-                new SensorSeed("AIT-201 Treated Biogas H2S", SensorType.HYDROGEN_SULFIDE, "SW-RIO-04", 42.0),
-                new SensorSeed("LIT-201 Biogas Balloon B201 Level", SensorType.LIQUID_LEVEL, "SW-RIO-04", 66.0),
-                new SensorSeed("PIT-202 Balloon Gas Header Pressure", SensorType.PRESSURE_TRANSMITTER, "SW-RIO-04", 1.22),
-                new SensorSeed("PDT-201 Scrubber SC-201 Differential Pressure", SensorType.PRESSURE, "SW-RIO-04", 0.38),
-                new SensorSeed("LIT-301 Slurry Storage Tank T301 Level", SensorType.LIQUID_LEVEL, "SW-RIO-03", 54.0),
-                new SensorSeed("AIT-302 Equalization Tank T302 pH", SensorType.PH, "SW-RIO-03", 7.05),
-                new SensorSeed("FIT-202 Treated Biogas Flow", SensorType.FLOW_TRANSMITTER, "SW-RIO-04", 9.6)
+                new SensorSeed("FIT-202 Treated Biogas Header Flow", SensorType.FLOW_TRANSMITTER, "SW-RIO-04", 9.6),
+                new SensorSeed("LIT-301 MT-101 Moisture Trap Level", SensorType.LIQUID_LEVEL, "SW-RIO-04", 38.0),
+                new SensorSeed("FIT-301 Biogas to GE-101 Flow", SensorType.GAS_FLOW, "SW-RIO-04", 10.2),
+                new SensorSeed("AIT-302 Flare FA-101 Feed", SensorType.METHANE, "SW-RIO-04", 12.5)
         );
 
         for (SensorSeed seed : sensors) {

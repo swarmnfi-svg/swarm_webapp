@@ -9,6 +9,7 @@ import {
   Menu as MenuIcon, Dashboard, Factory, Sensors, ShowChart,
   Notifications as NotifIcon, Psychology, Build, Assessment,
   People, Settings, Logout, Password, BluetoothConnected, MenuBook,
+  PrecisionManufacturing,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { notificationAPI } from '../../services/api';
@@ -19,6 +20,7 @@ const NAV_BG = '#1e2430';
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
+  { text: 'Plant HMI', icon: <PrecisionManufacturing />, path: '/plant-hmi', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Plants', icon: <Factory />, path: '/plants', roles: ['SUPER_ADMIN', 'PLANT_ADMIN'] },
   { text: 'Sensor Nodes', icon: <Sensors />, path: '/sensors', roles: ['SUPER_ADMIN', 'PLANT_ADMIN'] },
   { text: 'Connect Device', icon: <BluetoothConnected />, path: '/connect-device', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
@@ -125,7 +127,7 @@ export default function MainLayout() {
               <MenuIcon />
             </IconButton>
           )}
-          <Logo height={36} sx={{ flexShrink: 0 }} />
+          <Logo height={36} sx={{ flexShrink: 0, height: { xs: 28, sm: 36 } }} />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Typography
               variant="subtitle1"
@@ -210,14 +212,14 @@ export default function MainLayout() {
         }}
       >
         <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }} />
-        <Box sx={{ flex: 1, p: { xs: 2, sm: 3 }, width: '100%', maxWidth: '100%' }}>
+        <Box sx={{ flex: 1, p: { xs: 1.5, sm: 2, md: 3 }, width: '100%', maxWidth: '100%' }} className="safe-area-padding">
           <Outlet />
         </Box>
         <Box
           component="footer"
           sx={{
-            py: 2,
-            px: 3,
+            py: { xs: 1.5, sm: 2 },
+            px: { xs: 2, sm: 3 },
             textAlign: 'center',
             color: 'text.secondary',
             borderTop: '1px solid',
@@ -225,6 +227,7 @@ export default function MainLayout() {
             bgcolor: 'background.paper',
             mt: 'auto',
           }}
+          className="safe-area-padding"
         >
           <Typography variant="caption">
             © 2026 SWARM by nanoFarm — AI-IoT Plant Health Monitoring System

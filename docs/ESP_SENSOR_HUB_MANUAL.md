@@ -1,6 +1,6 @@
 # ESP Sensor Hub Connection Manual
 
-## SWARM by nanoFarm — Temperature & Methane Hub (ESP8266)
+## SWARM by nanoFarm — Temperature & Methane Hub (SWARM MODEL)
 
 This guide covers the full flow: admin first flash → field Wi‑Fi setup with Unique ID → pairing the hub in the SWARM web app → verifying live readings.
 
@@ -12,7 +12,7 @@ Screenshots are stored in [`manual-screenshots/`](./manual-screenshots/) (sharp 
 
 | Item | Notes |
 |------|--------|
-| ESP8266 Sensor Hub | DHT11 (temperature/humidity) + MQ5 (methane/gas) |
+| SWARM MODEL Sensor Hub | DHT11 (temperature/humidity) + MQ5 (methane/gas) |
 | USB cable | First flash only (admin) |
 | Phone | To join the ESP setup hotspot and set Wi‑Fi |
 | PC on same Wi‑Fi as ESP | To open SWARM and pair the device |
@@ -128,7 +128,7 @@ PC and ESP must be on the **same Wi‑Fi**. Backend must be reachable on a **LAN
 
 ### Step C2 — Connect to ESP
 
-1. Enter **ESP8266 IP address** from `/info` (example `192.168.29.133`).
+1. Enter **SWARM MODEL IP address** from `/info` (example `192.168.29.133`).
 2. Enter **Device password** (from firmware /setup — not the Unique ID).
 3. Click **Connect**.
 

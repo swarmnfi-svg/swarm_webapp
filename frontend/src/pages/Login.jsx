@@ -52,7 +52,19 @@ export default function Login() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      if (!err.response) {
+        setError(
+          'Cannot reach the server. On another PC, open the app at the host computer\'s LAN address '
+          + `(e.g. http://192.168.29.22:3000), not localhost. Ensure both frontend and backend are running on the host.`
+        );
+      } else if (err.response.status === 401) {
+        setError(err.response.data?.message || 'Invalid email or password');
+      } else {
+        setError(
+          err.response.data?.message
+          || `Server error (${err.response.status}). Ensure the backend is running on the host PC.`
+        );
+      }
     }
   };
 
@@ -107,6 +119,14 @@ export default function Login() {
           <Typography variant="body2" sx={{ color: O.muted, textAlign: 'center', mb: 3 }}>
             {forgotMode ? 'Enter your email for a reset link' : 'Sign in to your account'}
           </Typography>
+
+          {import.meta.env.DEV
+            && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+            <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+              LAN access from other computers: use the host PC&apos;s network URL
+              {' '}(<strong>http://192.168.29.22:3000</strong>), not <strong>localhost</strong>.
+            </Alert>
+          )}
 
           {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
           {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{success}</Alert>}

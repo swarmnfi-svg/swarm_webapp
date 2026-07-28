@@ -1,5 +1,5 @@
 /*
- * SWARM Sensor Hub — ESP8266 + DHT11 + MQ5
+ * SWARM Sensor Hub — SWARM MODEL + DHT11 + MQ5
  *
  * Features:
  * - /info, /api/status, /setup, /swarm/configure

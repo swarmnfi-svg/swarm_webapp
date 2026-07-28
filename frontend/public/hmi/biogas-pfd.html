@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biogas Plant - Process Flow Diagram (PFD)</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --stream-water: #0ea5e9;
+            --stream-slurry: #d97706;
+            --stream-gas: #10b981;
+            --stream-flare: #f43f5e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+
+        .hmi-brand-bar {
+            flex-shrink: 0;
+            padding: 10px 16px 8px;
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hmi-brand-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            color: var(--accent-amber);
+            line-height: 1.2;
+        }
+
+        .hmi-brand-tagline {
+            margin-top: 4px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        .controls-bar {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            background-color: var(--bg-secondary);
+            min-height: 48px;
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            flex-shrink: 0;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .control-btn {
+            background-color: #334155;
+            color: var(--text-primary);
+            border: 1px solid #475569;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            min-height: 34px;
+            white-space: nowrap;
+            touch-action: manipulation;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background-color: #475569;
+        }
+
+        .control-btn.active {
+            background-color: #0284c7;
+            border-color: #38bdf8;
+            color: white;
+        }
+
+        .control-btn.block-on,
+        .control-btn.on {
+            background-color: #15803d;
+            border-color: #22c55e;
+            color: #fff;
+        }
+
+        .control-btn.block-off,
+        .control-btn.off {
+            background-color: #991b1b;
+            border-color: #ef4444;
+            color: #fff;
+        }
+
+        .control-btn.block-fault,
+        .control-btn.fault {
+            background-color: #a16207;
+            border-color: #f59e0b;
+            color: #fff;
+        }
+
+        .control-btn.block-idle,
+        .control-btn.neutral {
+            background-color: #334155;
+            border-color: #475569;
+            color: var(--text-secondary);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .unit-box.block-on {
+            fill: #14532d;
+            stroke: #22c55e;
+            stroke-width: 3;
+        }
+
+        .unit-box.block-off {
+            fill: #450a0a;
+            stroke: #ef4444;
+            stroke-width: 3;
+        }
+
+        .unit-box.block-fault {
+            fill: #422006;
+            stroke: #f59e0b;
+            stroke-width: 3;
+        }
+
+        .unit-box.block-idle {
+            fill: #1e293b;
+            stroke: #64748b;
+            stroke-width: 2;
+        }
+
+        .flow-dash[data-flow-state="none"] {
+            animation-play-state: paused;
+            opacity: 0.25;
+        }
+
+        .flow-dash[data-flow-state="normal"] {
+            animation-play-state: running;
+            opacity: 1;
+        }
+
+        .flow-line[data-flow-state="none"],
+        .flow-line-bg[data-flow-state="none"] {
+            opacity: 0.25;
+        }
+
+        .flow-line[data-flow-state="normal"],
+        .flow-line-bg[data-flow-state="normal"] {
+            opacity: 1;
+        }
+
+        .zone-dimmed {
+            opacity: 0.35;
+        }
+
+        .zone-highlight {
+            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.45));
+        }
+
+        body.embedded .hmi-brand-bar {
+            display: none !important;
+        }
+
+        body.embedded::before {
+            display: none !important;
+        }
+
+        html,
+        body.embedded {
+            height: 100%;
+        }
+
+        body.embedded {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.embedded.embedded-maximized .hmi-main {
+            flex: 1;
+            min-height: 0;
+        }
+
+        body.embedded.embedded-maximized .diagram-card {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+        }
+
+        body.embedded.embedded-maximized #pfd-svg {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            height: 100%;
+            preserve-aspect-ratio: xMidYMid slice;
+        }
+
+        body.embedded .controls-bar {
+            flex-shrink: 0;
+        }
+
+        body.embedded .hmi-main {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .status-cluster {
+            display: none;
+        }
+
+        .diagram-card {
+            background-color: #0d1322;
+            flex: 1 1 auto;
+            min-width: 0;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hmi-main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .readings-panel {
+            flex: 0 0 248px;
+            width: 248px;
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .readings-panel-header {
+            padding: 8px 10px 6px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .readings-panel-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .readings-panel-subtitle {
+            margin-top: 2px;
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+        }
+
+        .readings-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 0 6px;
+            scrollbar-width: thin;
+        }
+
+        .readings-section {
+            margin-bottom: 8px;
+        }
+
+        .readings-section-title {
+            padding: 0 10px 4px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+        }
+
+        .readings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.64rem;
+            table-layout: fixed;
+        }
+
+        .readings-table col.col-point { width: 46%; }
+        .readings-table col.col-value { width: 34%; }
+        .readings-table col.col-status { width: 20%; }
+
+        .readings-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #1e293b;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-align: left;
+            padding: 4px 8px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            font-size: 0.6rem;
+        }
+
+        .readings-table tbody td {
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.45);
+            vertical-align: middle;
+        }
+
+        .readings-table tbody tr:hover {
+            background: rgba(56, 189, 248, 0.06);
+        }
+
+        .readings-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .readings-point {
+            line-height: 1.2;
+        }
+
+        .readings-tag {
+            display: block;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.62rem;
+            color: var(--accent-amber);
+            white-space: nowrap;
+        }
+
+        .readings-name {
+            display: block;
+            margin-top: 1px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.58rem;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .readings-value {
+            font-family: ui-monospace, Consolas, monospace;
+            font-weight: 600;
+            font-size: 0.62rem;
+            color: #7dd3fc;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .readings-status {
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .readings-status.status-running,
+        .readings-status.status-normal {
+            color: #22c55e;
+        }
+
+        .readings-status.status-off {
+            color: #94a3b8;
+        }
+
+        .readings-status.status-fault,
+        .readings-status.status-alarm {
+            color: #f59e0b;
+        }
+
+        /* SVG Styles */
+        svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            user-select: none;
+        }
+
+        /* Diagram Elements */
+        .unit-box {
+            fill: #1e293b;
+            stroke: #64748b;
+            stroke-width: 2;
+            rx: 4;
+            ry: 4;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .unit-box:hover {
+            fill: #334155;
+            stroke: #38bdf8;
+            stroke-width: 2.5;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+        }
+
+        .unit-box.selected {
+            stroke: #22c55e;
+            stroke-width: 3;
+            fill: #1e3a5f;
+        }
+
+        .unit-text {
+            fill: #f8fafc;
+            font-size: 13px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+
+        .unit-subtext {
+            fill: #94a3b8;
+            font-size: 10px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
+
+        /* Pipe Flow Lines */
+        .flow-line {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+            transition: opacity 0.3s;
+        }
+
+        .line-water { stroke: var(--stream-water); }
+        .line-slurry { stroke: var(--stream-slurry); }
+        .line-gas { stroke: var(--stream-gas); }
+        .line-flare { stroke: var(--stream-flare); }
+
+        .flow-line-bg {
+            fill: none;
+            stroke: #1e293b;
+            stroke-width: 5;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+        }
+
+        .pipe-junction {
+            stroke: #0d1322;
+            stroke-width: 2;
+        }
+
+        /* Flow direction animation */
+        .flow-dash {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-dasharray: 6, 10;
+            animation: dashMove 1.5s linear infinite;
+        }
+
+        @keyframes dashMove {
+            to { stroke-dashoffset: -32; }
+        }
+
+        .anim-paused .flow-dash {
+            animation-play-state: paused;
+        }
+
+        /* Arrowhead markers */
+        marker {
+            overflow: visible;
+        }
+
+        /* Instrument Symbols */
+        .instrument-circle {
+            fill: #0f172a;
+            stroke: #94a3b8;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .instrument-circle:hover,
+        ellipse.instrument-circle:hover {
+            fill: #334155;
+            stroke: #38bdf8;
+            stroke-width: 2;
+        }
+
+        .instrument-text {
+            fill: #f8fafc;
+            font-size: 10px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
+
+        .reading-tooltip {
+            position: fixed;
+            z-index: 2000;
+            display: none;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.96);
+            border: 1px solid #38bdf8;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            color: #f8fafc;
+            white-space: pre-line;
+            line-height: 1.45;
+            max-width: 280px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        }
+
+        .instrument-group[data-quality="bad"] .instrument-circle,
+        .instrument-group[data-quality="bad"] ellipse.instrument-circle {
+            stroke: #ef4444;
+        }
+
+        .instrument-group[data-comm="lost"] .instrument-circle,
+        .instrument-group[data-comm="lost"] ellipse.instrument-circle {
+            opacity: 0.5;
+        }
+
+        .pump-hexagon {
+            fill: #0f172a;
+            stroke: #f59e0b;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .equipment-line {
+            fill: none;
+            stroke: #94a3b8;
+            stroke-width: 1.5;
+            pointer-events: none;
+        }
+
+        .equipment-fill {
+            fill: #0f172a;
+            stroke: #94a3b8;
+            stroke-width: 1.5;
+            pointer-events: none;
+        }
+
+        .pump-hexagon:hover {
+            fill: #334155;
+            stroke: #fbbf24;
+        }
+
+        .motor-part {
+            transition: stroke 0.3s ease, fill 0.3s ease;
+        }
+
+        .fan-rotating .motor-part {
+            stroke: #22c55e;
+        }
+
+        .fan-rotating #pretreatment-motor-body,
+        .fan-rotating #pretreatment-motor-cap {
+            fill: #0f2a1a;
+        }
+
+        .fan-rotating #pretreatment-motor-label {
+            fill: #22c55e;
+        }
+
+        #unit-pretreatment_motor.block-on .motor-part {
+            stroke: #22c55e;
+        }
+
+        #unit-pretreatment_motor.block-off .motor-part {
+            stroke: #ef4444;
+        }
+
+        #unit-pretreatment_motor.block-fault .motor-part {
+            stroke: #f59e0b;
+        }
+
+        .control-btn.fan-on {
+            background-color: #15803d;
+            border-color: #22c55e;
+            color: white;
+        }
+
+        .highlight-water .flow-line:not(.line-water),
+        .highlight-water .flow-dash:not(.line-water) { opacity: 0.15; }
+        .highlight-slurry .flow-line:not(.line-slurry),
+        .highlight-slurry .flow-dash:not(.line-slurry) { opacity: 0.15; }
+        .highlight-gas .flow-line:not(.line-gas):not(.line-flare),
+        .highlight-gas .flow-dash:not(.line-gas):not(.line-flare) { opacity: 0.15; }
+
+        .legend-table {
+            width: 100%;
+            margin-top: 8px;
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            border-collapse: collapse;
+            font-size: 0.68rem;
+        }
+
+        .legend-table th,
+        .legend-table td {
+            padding: 4px 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        .legend-table tr:last-child td,
+        .legend-table tr:last-child th {
+            border-bottom: none;
+        }
+
+        .legend-table th {
+            color: var(--accent-amber);
+            font-weight: 700;
+            white-space: nowrap;
+            width: 28%;
+        }
+
+        .legend-table td {
+            color: var(--text-secondary);
+        }
+
+        .legend-table caption {
+            caption-side: top;
+            text-align: left;
+            padding: 0 0 6px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+        }
+
+        .readings-legend-section {
+            padding: 6px 10px 8px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px 8px;
+            font-size: 0.58rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-grid span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .legend-grid .lg-label {
+            font-weight: 700;
+        }
+
+        @media (max-width: 1366px), (max-height: 800px) {
+            .controls-bar {
+                min-height: 42px;
+                gap: 6px;
+                padding: 4px 8px;
+            }
+
+            .control-btn {
+                min-height: 32px;
+                padding: 5px 9px;
+                font-size: 0.72rem;
+            }
+
+            .stream-label {
+                font-size: 0.7rem !important;
+            }
+
+            .legend-table {
+                font-size: 0.65rem;
+            }
+
+            .legend-table th,
+            .legend-table td {
+                padding: 4px 8px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            body.embedded .hmi-main,
+            body.embedded .hmi-main.embedded-layout {
+                flex-direction: column;
+            }
+
+            body.embedded .readings-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                max-width: none;
+                max-height: 38vh;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+
+            body.embedded .diagram-card {
+                min-height: 42vh;
+            }
+        }
+
+        @media (max-width: 1050px) {
+            .stream-label {
+                display: none;
+            }
+
+            .hmi-main:not(.embedded-layout) {
+                flex-direction: column;
+            }
+
+            .hmi-main:not(.embedded-layout) .readings-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                max-width: none;
+                max-height: 240px;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .control-btn {
+                font-size: 0.72rem;
+                padding: 8px 10px;
+                min-height: 38px;
+            }
+
+            .hmi-brand-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (orientation: portrait) {
+            body:not(.embedded)::before {
+                content: "For the complete HMI process view, rotate the display to landscape.";
+                position: fixed;
+                inset: 0;
+                z-index: 100;
+                display: grid;
+                place-items: center;
+                padding: 32px;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                font-weight: 700;
+                text-align: center;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="hmi-brand-bar">
+        <div class="hmi-brand-title">SWARM</div>
+        <div class="hmi-brand-tagline">Industrial IoT control, reporting &amp; AI platform expilization</div>
+    </div>
+
+    <div class="controls-bar" id="block-controls-bar">
+        <button class="control-btn neutral" id="block-btn-all-on" type="button">All On</button>
+        <button class="control-btn neutral" id="block-btn-belt_conveyor" type="button">Belt Conveyor</button>
+        <button class="control-btn neutral" id="block-btn-crusher" type="button">Crusher</button>
+        <button class="control-btn neutral" id="block-btn-pre_treatment" type="button">Pre Treatment Tank</button>
+        <button class="control-btn neutral" id="block-btn-pretreatment_motor" type="button">Motor</button>
+        <button class="control-btn neutral" id="block-btn-main_digester" type="button">Main Digester</button>
+        <button class="control-btn neutral" id="block-btn-slurry_storage" type="button">Slurry Storage Tank</button>
+        <button class="control-btn neutral" id="block-btn-treatment_water" type="button">Treatment Water Tank</button>
+        <button class="control-btn neutral" id="block-btn-eqilization" type="button">Equalization Tank</button>
+    </div>
+
+    <div class="hmi-main">
+    <div class="diagram-card" id="diagram-wrapper">
+            <svg id="pfd-svg" viewBox="0 0 1600 950" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <!-- Marker Arrows for Streams -->
+                    <marker id="arrow-water" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#0ea5e9" />
+                    </marker>
+                    <marker id="arrow-slurry" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
+                    </marker>
+                    <marker id="arrow-gas" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                    </marker>
+                    <marker id="arrow-flare" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e" />
+                    </marker>
+
+                    <!-- Schematic pump symbol (motor + horizontal body + flanges) -->
+                    <symbol id="pump-symbol" viewBox="0 0 36 28">
+                        <rect x="13" y="0" width="10" height="13" rx="2.5" class="equipment-fill" />
+                        <line x1="14" y1="2.5" x2="22" y2="2.5" class="equipment-line" stroke-width="0.8" />
+                        <line x1="14" y1="10.5" x2="22" y2="10.5" class="equipment-line" stroke-width="0.8" />
+                        <rect x="4" y="13" width="28" height="11" rx="5.5" class="equipment-fill" />
+                        <line x1="0" y1="18.5" x2="4" y2="18.5" class="equipment-line" />
+                        <line x1="0" y1="16.5" x2="0" y2="20.5" class="equipment-line" />
+                        <line x1="32" y1="18.5" x2="36" y2="18.5" class="equipment-line" />
+                        <line x1="36" y1="16.5" x2="36" y2="20.5" class="equipment-line" />
+                    </symbol>
+                </defs>
+
+                <!-- ==================== FLOW LINES (BACKGROUND & FOREGROUND) ==================== -->
+
+                <!-- 1. Fresh Water Feed → Heater -->
+                <path class="flow-line-bg" d="M 190 100 L 400 100" />
+                <path class="flow-line line-water" marker-end="url(#arrow-water)" d="M 190 100 L 400 100" />
+                <path class="flow-dash line-water" d="M 190 100 L 400 100" />
+
+                <!-- Fresh Water branch down → Crusher (direct) -->
+                <path class="flow-line-bg" d="M 250 100 V 305 H 270" />
+                <path class="flow-line line-water" d="M 250 100 V 305 H 270" />
+                <path class="flow-dash line-water" d="M 250 100 V 305 H 270" />
+
+                <!-- Heater → Pre Treatment Tank -->
+                <path class="flow-line-bg" d="M 470 130 V 315" />
+                <path class="flow-line line-water" marker-end="url(#arrow-water)" d="M 470 130 V 315" />
+                <path class="flow-dash line-water" d="M 470 130 V 315" />
+
+                <!-- 2. Bag Breaker to Belt Conveyor -->
+                <path class="flow-line-bg" d="M 100 255 V 320" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 100 255 V 320" />
+                <path class="flow-dash line-slurry" d="M 100 255 V 320" />
+
+                <!-- Conveyor to Crusher -->
+                <path class="flow-line-bg" d="M 190 340 H 255" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 190 340 H 255" />
+                <path class="flow-dash line-slurry" d="M 190 340 H 255" />
+
+                <!-- Crusher to Pre-Treatment Tank -->
+                <path class="flow-line-bg" d="M 365 340 H 440" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 365 340 H 440" />
+                <path class="flow-dash line-slurry" d="M 365 340 H 440" />
+
+                <!-- Treatment Water → Crusher (water loop, below Pre Treatment Tank) -->
+                <path class="flow-line-bg" d="M 710 430 V 465 H 240 V 295 H 310" />
+                <path class="flow-line line-water" d="M 710 430 V 465 H 240 V 295 H 310" />
+                <path class="flow-dash line-water" d="M 710 430 V 465 H 240 V 295 H 310" />
+
+                <!-- Main Digester → Slurry Storage (upper right outlet, top edge) -->
+                <path class="flow-line-bg" d="M 1000 115 H 1115 V 325" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 1000 115 H 1115 V 325" />
+                <path class="flow-dash line-slurry" d="M 1000 115 H 1115 V 325" />
+
+                <!-- Main Digester → Slurry Storage (lower right outlet, bottom edge) -->
+                <path class="flow-line-bg" d="M 1000 215 H 1055 V 325" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 1000 215 H 1055 V 325" />
+                <path class="flow-dash line-slurry" d="M 1000 215 H 1055 V 325" />
+
+                <!-- Slurry Tank → Screw Press -->
+                <path class="flow-line-bg" d="M 1100 325 V 275 H 1205" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 1100 325 V 275 H 1205" />
+                <path class="flow-dash line-slurry" d="M 1100 325 V 275 H 1205" />
+
+                <!-- Screw Press → Equalization Tank -->
+                <path class="flow-line-bg" d="M 1285 280 H 1315 V 365" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 1285 280 H 1315 V 365" />
+                <path class="flow-dash line-slurry" d="M 1285 280 H 1315 V 365" />
+
+                <!-- Equalization Tank → Skid Mounted ETP -->
+                <path class="flow-line-bg" d="M 1405 455 V 560 H 1230" />
+                <path class="flow-line line-water" marker-end="url(#arrow-water)" d="M 1405 455 V 560 H 1230" />
+                <path class="flow-dash line-water" d="M 1405 455 V 560 H 1230" />
+
+                <!-- Skid Mounted ETP to Treatment Water Tank -->
+                <path class="flow-line-bg" d="M 1050 560 H 960 V 450 H 870" />
+                <path class="flow-line line-water" marker-end="url(#arrow-water)" d="M 1050 560 H 960 V 450 H 870" />
+                <path class="flow-dash line-water" d="M 1050 560 H 960 V 450 H 870" />
+
+                <!-- Biogas: Digester roof peak → dedicated left-side corridor → Gas Storage Balloon -->
+                <path class="flow-line-bg" d="M 900 85 V 25 H 700 V 625 H 820 V 660" />
+                <path class="flow-line line-gas" marker-end="url(#arrow-gas)" d="M 900 85 V 25 H 700 V 625 H 820 V 660" />
+                <path class="flow-dash line-gas" d="M 900 85 V 25 H 700 V 625 H 820 V 660" />
+
+                <!-- Feedstock pipeline: Main Digester top-right corner → right-side corridor → Gas Storage Balloon -->
+                <path class="flow-line-bg" d="M 1000 115 H 1515 V 750 H 935" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 1000 115 H 1515 V 750 H 935" />
+                <path class="flow-dash line-slurry" d="M 1000 115 H 1515 V 750 H 935" />
+
+                <!-- Gas Balloon → FIT → PIT → Scrubber -->
+                <path class="flow-line-bg" d="M 705 720 H 535" />
+                <path class="flow-line line-gas" marker-end="url(#arrow-gas)" d="M 705 720 H 535" />
+                <path class="flow-dash line-gas" d="M 705 720 H 535" />
+
+                <!-- Scrubber → Biogas Generator -->
+                <path class="flow-line-bg" d="M 445 720 H 325" />
+                <path class="flow-line line-gas" marker-end="url(#arrow-gas)" d="M 445 720 H 325" />
+                <path class="flow-dash line-gas" d="M 445 720 H 325" />
+
+                <!-- Gas line branch → Flaring Tank (tee on header west of PIT, then down) -->
+                <path class="flow-line-bg" d="M 585 720 V 850 H 1380" />
+                <path class="flow-line line-flare" marker-end="url(#arrow-flare)" d="M 585 720 V 850 H 1380" />
+                <path class="flow-dash line-flare" d="M 585 720 V 850 H 1380" />
+
+                <!-- Explicit tee points remove ambiguity where streams branch -->
+                <circle class="pipe-junction" cx="250" cy="100" r="5" fill="#0ea5e9" />
+                <circle class="pipe-junction" cx="585" cy="720" r="5" fill="#10b981" />
+
+
+                <!-- ==================== PROCESS UNITS / BLOCKS ==================== -->
+
+                <!-- FRESH WATER FEED -->
+                <g>
+                    <rect id="unit-fresh_water" class="unit-box" x="30" y="70" width="160" height="60" />
+                    <text class="unit-text" x="110" y="95">FRESH WATER</text>
+                    <text class="unit-text" x="110" y="112">FEED</text>
+                </g>
+
+                <!-- HEATER -->
+                <g>
+                    <rect id="unit-heater" class="unit-box" x="400" y="70" width="140" height="60" />
+                    <text class="unit-text" x="470" y="100">HEATER</text>
+                </g>
+
+                <!-- BAG BREAKER -->
+                <g>
+                    <rect id="unit-main_feed" class="unit-box" x="35" y="205" width="130" height="50" />
+                    <text class="unit-text" x="100" y="230">BAG BREAKER</text>
+                </g>
+
+                <!-- BELT CONVEYOR -->
+                <g>
+                    <rect id="unit-belt_conveyor" class="unit-box" x="10" y="320" width="180" height="40" rx="20" ry="20" />
+                    <text class="unit-text" x="100" y="340">BELT CONVEYOR</text>
+                </g>
+
+                <!-- CRUSHER -->
+                <g>
+                    <rect id="unit-crusher" class="unit-box" x="255" y="305" width="110" height="70" />
+                    <text class="unit-text" x="310" y="340">CRUSHER</text>
+                </g>
+
+                <!-- Fresh Water entry on top of Crusher -->
+                <path class="flow-line-bg" d="M 270 305 V 318" />
+                <path class="flow-line line-water" marker-end="url(#arrow-water)" d="M 270 305 V 318" />
+                <path class="flow-dash line-water" d="M 270 305 V 318" />
+
+                <!-- Treatment water loop entry on top of Crusher -->
+                <path class="flow-line-bg" d="M 310 295 V 318" />
+                <path class="flow-line line-water" marker-end="url(#arrow-water)" d="M 310 295 V 318" />
+                <path class="flow-dash line-water" d="M 310 295 V 318" />
+
+                <!-- PRE TREATMENT TANK -->
+                <g>
+                    <rect id="unit-pre_treatment" class="unit-box" x="440" y="315" width="245" height="130" />
+                    <text class="unit-text" x="562" y="395" style="font-size:11px;">PRE TREATMENT TANK</text>
+
+                    <!-- Top motor -->
+                    <g id="unit-pretreatment_motor">
+                        <rect id="pretreatment-motor-body" class="motor-part equipment-fill" x="552" y="288" width="20" height="27" rx="2" />
+                        <line class="motor-part equipment-line" x1="556" y1="294" x2="556" y2="312" />
+                        <line class="motor-part equipment-line" x1="560" y1="294" x2="560" y2="312" />
+                        <line class="motor-part equipment-line" x1="564" y1="294" x2="564" y2="312" />
+                        <line class="motor-part equipment-line" x1="568" y1="294" x2="568" y2="312" />
+                        <circle id="pretreatment-motor-cap" class="motor-part equipment-fill" cx="562" cy="280" r="9" />
+                        <text id="pretreatment-motor-label" class="instrument-text" x="562" y="280" style="font-size:9px;">M</text>
+                    </g>
+
+                    <!-- Shaft -->
+                    <line id="pretreatment-shaft" class="motor-part equipment-line" x1="562" y1="315" x2="562" y2="355" stroke-width="2" />
+
+                    <!-- Fan (infinity impeller) -->
+                    <g transform="translate(562, 355)">
+                        <g id="pretreatment-fan-rotor">
+                            <path class="equipment-line" stroke-width="2" fill="none" d="M -20 0 C -20 -9 -7 -13 0 0 C 7 -13 20 -9 20 0 C 20 9 7 13 0 0 C -7 13 -20 9 -20 0" />
+                            <animateTransform
+                                id="fan-rotate-anim"
+                                attributeName="transform"
+                                type="rotate"
+                                from="0"
+                                to="360"
+                                dur="1.4s"
+                                repeatCount="indefinite"
+                                begin="indefinite" />
+                        </g>
+                    </g>
+
+                    <!-- Bottom-left pump (PS) -->
+                    <g id="pretreatment-pump-ps">
+                        <use href="#pump-symbol" x="448" y="413.5" width="36" height="28" />
+                        <line class="equipment-line" x1="440" y1="432" x2="448" y2="432" />
+                        <line class="equipment-line" x1="484" y1="432" x2="486" y2="432" />
+                    </g>
+
+                    <!-- Bottom-right pump (PW) — outflow to Main Digester -->
+                    <g id="pretreatment-pump-pw">
+                        <use href="#pump-symbol" x="641" y="413.5" width="36" height="28" />
+                        <line class="equipment-line" x1="639" y1="432" x2="641" y2="432" />
+                        <line class="equipment-line" x1="677" y1="432" x2="680" y2="432" />
+                    </g>
+
+                    <!-- Feedstock pipeline: PS → PW (line only, no arrow) -->
+                    <path class="flow-line-bg" d="M 486 432 H 639" stroke-width="6" />
+                    <path class="flow-line line-slurry" d="M 486 432 H 639" stroke-width="3" />
+                    <path class="flow-dash line-slurry" d="M 486 432 H 639" stroke-width="3" />
+
+                    <!-- PW outflow → FIT → Main Digester (from PW pump discharge) -->
+                    <path class="flow-line-bg" d="M 677 432 V 165 H 800" stroke-width="6" />
+                    <path class="flow-line line-slurry" d="M 677 432 V 165 H 800" stroke-width="3" />
+                    <path class="flow-dash line-slurry" d="M 677 432 V 165 H 800" stroke-width="3" />
+
+                    <!-- Pump labels (drawn above lines) -->
+                    <text x="467" y="405" style="font-size:10px; fill:#f59e0b; font-weight:700; text-anchor:middle;">PS</text>
+                    <text x="658" y="405" style="font-size:10px; fill:#f59e0b; font-weight:700; text-anchor:middle;">PW</text>
+                </g>
+
+                <!-- FIT - Pre-treatment Feed Sensor (on inlet line) -->
+                <g class="instrument-group" data-instrument="fit-101">
+                    <circle class="instrument-circle" cx="750" cy="165" r="18" />
+                    <text class="instrument-text" x="750" y="165">FIT</text>
+                </g>
+
+                <!-- MAIN DIGESTER (roofed tank schematic) -->
+                <g id="unit-main_digester-group">
+                    <!-- Triangular roof -->
+                    <polygon class="unit-box" points="800,115 900,85 1000,115" />
+                    <!-- Rectangular body -->
+                    <rect id="unit-main_digester" class="unit-box" x="800" y="115" width="200" height="100" />
+                    <text class="unit-text" x="900" y="165">MAIN DIGESTER</text>
+
+                    <!-- PIT — left roof slope (tapped at body top-left corner) -->
+                    <line x1="800" y1="115" x2="850" y2="57" stroke="#94a3b8" stroke-width="1.5" />
+                    <line x1="862" y1="96" x2="850" y2="57" stroke="#94a3b8" stroke-width="1.5" />
+                    <g class="instrument-group" data-instrument="pit-101">
+                        <ellipse class="instrument-circle" cx="850" cy="45" rx="20" ry="12" />
+                        <text class="instrument-text" x="850" y="45">PIT</text>
+                    </g>
+
+                    <!-- Motor (M) at roof peak -->
+                    <line class="equipment-line" x1="900" y1="85" x2="900" y2="68" />
+                    <rect class="equipment-fill" x="892" y="54" width="16" height="14" rx="2" />
+                    <line class="equipment-line" x1="895" y1="58" x2="895" y2="66" />
+                    <line class="equipment-line" x1="899" y1="58" x2="899" y2="66" />
+                    <line class="equipment-line" x1="903" y1="58" x2="903" y2="66" />
+                    <circle class="equipment-fill" cx="900" cy="44" r="8" />
+                    <text class="instrument-text" x="900" y="44" style="font-size:8px;">M</text>
+                </g>
+
+                <!-- Main Digester pipe connections (drawn on top of tank outline) -->
+                <path class="flow-line-bg" d="M 790 165 H 800" stroke-width="6" />
+                <path class="flow-line line-slurry" marker-end="url(#arrow-slurry)" d="M 790 165 H 800" stroke-width="3" />
+                <path class="flow-dash line-slurry" d="M 790 165 H 800" stroke-width="3" />
+
+                <path class="flow-line-bg" d="M 1000 115 H 1010" stroke-width="6" />
+                <path class="flow-line line-slurry" d="M 1000 115 H 1010" stroke-width="3" />
+                <path class="flow-dash line-slurry" d="M 1000 115 H 1010" stroke-width="3" />
+
+                <path class="flow-line-bg" d="M 1000 115 V 105" stroke-width="6" />
+                <path class="flow-line line-slurry" d="M 1000 115 V 105" stroke-width="3" />
+                <path class="flow-dash line-slurry" d="M 1000 115 V 105" stroke-width="3" />
+
+                <path class="flow-line-bg" d="M 1000 215 H 1010" stroke-width="6" />
+                <path class="flow-line line-slurry" d="M 1000 215 H 1010" stroke-width="3" />
+                <path class="flow-dash line-slurry" d="M 1000 215 H 1010" stroke-width="3" />
+
+                <path class="flow-line-bg" d="M 900 85 V 78" stroke-width="6" />
+                <path class="flow-line line-gas" d="M 900 85 V 78" stroke-width="3" />
+                <path class="flow-dash line-gas" d="M 900 85 V 78" stroke-width="3" />
+
+                <!-- TREATMENT WATER TANK -->
+                <g>
+                    <rect id="unit-treatment_water" class="unit-box" x="710" y="350" width="160" height="100" />
+                    <text class="unit-text" x="790" y="390" style="font-size:11px;">TREATMENT</text>
+                    <text class="unit-text" x="790" y="405" style="font-size:11px;">WATER TANK</text>
+
+                    <!-- Internal Pump -->
+                    <use href="#pump-symbol" x="734" y="413.5" width="36" height="28" />
+                </g>
+
+                <!-- SLURRY STORAGE TANK -->
+                <g>
+                    <rect id="unit-slurry_storage" class="unit-box" x="930" y="325" width="200" height="90" />
+                    <text class="unit-text" x="1030" y="360" style="font-size:12px;">SLURRY STORAGE TANK</text>
+
+                    <!-- Internal Pump -->
+                    <use href="#pump-symbol" x="1084" y="378.5" width="36" height="28" />
+                </g>
+
+                <!-- SCREW PRESS -->
+                <g>
+                    <rect id="unit-screw_press" class="unit-box" x="1205" y="235" width="80" height="90" />
+                    <text class="unit-text" x="1245" y="270" style="font-size:11px;">SCREW</text>
+                    <text class="unit-text" x="1245" y="285" style="font-size:11px;">PRESS</text>
+                </g>
+
+                <!-- EQUALIZATION TANK -->
+                <g>
+                    <rect id="unit-eqilization" class="unit-box" x="1315" y="365" width="180" height="90" />
+                    <text class="unit-text" x="1405" y="400" style="font-size:12px;">EQUALIZATION TANK</text>
+
+                    <!-- Internal Pump -->
+                    <use href="#pump-symbol" x="1334" y="413.5" width="36" height="28" />
+                </g>
+
+                <!-- SKID MOUNTED ETP -->
+                <g>
+                    <rect id="unit-skid_etp" class="unit-box" x="1050" y="520" width="180" height="80" />
+                    <text class="unit-text" x="1140" y="560" style="font-size:12px;">SKID MOUNTED ETP</text>
+                </g>
+
+                <!-- GAS STORAGE BALLOON -->
+                <g>
+                    <rect id="unit-gas_storage" class="unit-box" x="705" y="660" width="230" height="120" />
+                    <text class="unit-text" x="820" y="720">GAS STORAGE BALLOON</text>
+
+                    <!-- Top PIT Instrument -->
+                    <g class="instrument-group" data-instrument="pit-102">
+                        <circle class="instrument-circle" cx="890" cy="625" r="16" />
+                        <text class="instrument-text" x="890" y="625">PIT</text>
+                    </g>
+                    <line x1="890" y1="641" x2="890" y2="660" stroke="#94a3b8" stroke-width="1.5" />
+                </g>
+
+                <!-- FIT & PIT Gas Outlet Sensors (on top of pipes so circles render cleanly) -->
+                <g class="instrument-group" data-instrument="fit-102">
+                    <circle class="instrument-circle" cx="660" cy="720" r="18" />
+                    <text class="instrument-text" x="660" y="720">FIT</text>
+                </g>
+
+                <g class="instrument-group" data-instrument="pit-103">
+                    <circle class="instrument-circle" cx="610" cy="720" r="18" />
+                    <text class="instrument-text" x="610" y="720">PIT</text>
+                </g>
+
+                <!-- SCRUBBER -->
+                <g>
+                    <rect id="unit-scrubber" class="unit-box" x="445" y="685" width="90" height="70" />
+                    <text class="unit-text" x="490" y="720" style="font-size:11px;">SCRUBBER</text>
+                </g>
+
+                <!-- BIOGAS GENERATOR -->
+                <g>
+                    <rect id="unit-biogas_generator" class="unit-box" x="220" y="660" width="105" height="120" />
+                    <text class="unit-text" x="272" y="715" style="font-size:11px;">BIOGAS</text>
+                    <text class="unit-text" x="272" y="730" style="font-size:11px;">GENERATOR</text>
+                </g>
+
+                <!-- FLARING TANK / FLARE STACK -->
+                <g>
+                    <rect id="unit-flaring_tank" class="unit-box" x="1380" y="780" width="80" height="140" />
+                    <text class="unit-text" x="1420" y="840" style="font-size:11px; writing-mode: vertical-rl; text-orientation: mixed;">FLARING TANK</text>
+                </g>
+
+                <g id="equipment-status-layer"></g>
+
+            </svg>
+    </div>
+
+    <aside class="readings-panel" id="readings-panel" aria-label="Live process readings">
+        <div class="readings-panel-header">
+            <div class="readings-panel-title">Live Readings</div>
+            <div class="readings-panel-subtitle">Updated: <span id="readings-updated-at">—</span></div>
+        </div>
+        <div class="readings-panel-body">
+            <section class="readings-section" aria-labelledby="equipment-readings-heading">
+                <div class="readings-section-title" id="equipment-readings-heading">Equipment</div>
+                <table class="readings-table">
+                    <colgroup>
+                        <col class="col-point" /><col class="col-value" /><col class="col-status" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Point</th>
+                            <th style="text-align:right">Value</th>
+                            <th style="text-align:center">St</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipment-readings-body">
+                        <tr data-block-id="belt_conveyor"><td class="readings-point"><span class="readings-tag">BC101</span><span class="readings-name">Belt Conveyor</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="crusher"><td class="readings-point"><span class="readings-tag">CH101</span><span class="readings-name">Crusher</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="pre_treatment"><td class="readings-point"><span class="readings-tag">P-101B</span><span class="readings-name">Pre Treatment Tank</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="pretreatment_motor"><td class="readings-point"><span class="readings-tag">AG101</span><span class="readings-name">Motor</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="main_digester"><td class="readings-point"><span class="readings-tag">AG102</span><span class="readings-name">Main Digester</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="slurry_storage"><td class="readings-point"><span class="readings-tag">P102</span><span class="readings-name">Slurry Storage Tank</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="treatment_water"><td class="readings-point"><span class="readings-tag">P104</span><span class="readings-name">Treatment Water Tank</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                        <tr data-block-id="eqilization"><td class="readings-point"><span class="readings-tag">P103</span><span class="readings-name">Equalization Tank</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-off" data-field="status">Off</td></tr>
+                    </tbody>
+                </table>
+            </section>
+            <section class="readings-section" aria-labelledby="instrument-readings-heading">
+                <div class="readings-section-title" id="instrument-readings-heading">Instruments</div>
+                <table class="readings-table">
+                    <colgroup>
+                        <col class="col-point" /><col class="col-value" /><col class="col-status" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Point</th>
+                            <th style="text-align:right">Value</th>
+                            <th style="text-align:center">St</th>
+                        </tr>
+                    </thead>
+                    <tbody id="instrument-readings-body">
+                        <tr data-instrument-id="fit-101"><td class="readings-point"><span class="readings-tag">FIT-102</span><span class="readings-name">Slurry Feed Flow</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-normal" data-field="status">OK</td></tr>
+                        <tr data-instrument-id="pit-101"><td class="readings-point"><span class="readings-tag">PIT-103</span><span class="readings-name">Digester Gas Pressure</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-normal" data-field="status">OK</td></tr>
+                        <tr data-instrument-id="pit-102"><td class="readings-point"><span class="readings-tag">LIT-301</span><span class="readings-name">Gas Balloon Level</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-normal" data-field="status">OK</td></tr>
+                        <tr data-instrument-id="fit-102"><td class="readings-point"><span class="readings-tag">FIT-202</span><span class="readings-name">Biogas Header Flow</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-normal" data-field="status">OK</td></tr>
+                        <tr data-instrument-id="pit-103"><td class="readings-point"><span class="readings-tag">PIT-202</span><span class="readings-name">Gas Header Pressure</span></td><td class="readings-value" data-field="value">—</td><td class="readings-status status-normal" data-field="status">OK</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+        <section class="readings-legend-section" aria-label="Diagram legend">
+            <div class="readings-section-title">Block status</div>
+            <div class="legend-grid">
+                <span><span class="lg-label" style="color:#22c55e">Green</span> ON</span>
+                <span><span class="lg-label" style="color:#ef4444">Red</span> OFF</span>
+                <span><span class="lg-label" style="color:#f59e0b">Yellow</span> Fault</span>
+                <span><span class="lg-label">PS/PW</span> Pump</span>
+                <span><span class="lg-label">PIT</span> Pressure</span>
+                <span><span class="lg-label">FIT</span> Flow</span>
+            </div>
+        </section>
+    </aside>
+    </div>
+
+    <div id="reading-tooltip" class="reading-tooltip" role="tooltip" aria-hidden="true"></div>
+
+    <script src="/hmi/swarm-hmi.js?v=block-controls-26"></script>
+</body>
+</html>

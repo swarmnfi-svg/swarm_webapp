@@ -18,6 +18,7 @@ import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import ChangePassword from './pages/ChangePassword';
 import Help from './pages/Help';
+import PlantHmi from './pages/PlantHmi';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user } = useAuth();
@@ -37,6 +38,7 @@ function App() {
       <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="plant-hmi" element={<PlantHmi />} />
         <Route path="plants" element={<ProtectedRoute roles={['SUPER_ADMIN', 'PLANT_ADMIN']}><Plants /></ProtectedRoute>} />
         <Route path="sensors" element={<ProtectedRoute roles={['SUPER_ADMIN', 'PLANT_ADMIN']}><Sensors /></ProtectedRoute>} />
         <Route path="connect-device" element={<ProtectedRoute roles={['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR']}><ConnectDevice /></ProtectedRoute>} />

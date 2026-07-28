@@ -37,10 +37,10 @@ export default function Settings() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>System Settings</Typography>
+      <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>System Settings</Typography>
       {saved && <Alert severity="success" sx={{ mb: 2 }}>Settings saved successfully</Alert>}
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} variant="scrollable" scrollButtons="auto">
         <Tab label="Alert Thresholds" /><Tab label="MQTT Broker" /><Tab label="Email Server" />
         <Tab label="AI Settings" /><Tab label="Report Schedule" />
       </Tabs>

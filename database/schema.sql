@@ -156,3 +156,46 @@ CREATE TABLE IF NOT EXISTS partner_api_keys (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (org_id) REFERENCES partner_organizations(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS hmi_equipment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    tag_no VARCHAR(32) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    zone VARCHAR(32) NOT NULL,
+    equipment_kind VARCHAR(32) NOT NULL,
+    controllable BOOLEAN NOT NULL DEFAULT FALSE,
+    sensor_node_id BIGINT NULL,
+    sequence_order INT,
+    motor_hp DOUBLE,
+    capacity VARCHAR(64),
+    hotspot_x DOUBLE,
+    hotspot_y DOUBLE,
+    hotspot_w DOUBLE,
+    hotspot_h DOUBLE,
+    UNIQUE KEY uk_hmi_equipment_plant_tag (plant_id, tag_no),
+    FOREIGN KEY (plant_id) REFERENCES plants(plant_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS hmi_equipment_state (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plant_id BIGINT NOT NULL,
+    equipment_id BIGINT NOT NULL,
+    powered BOOLEAN NOT NULL DEFAULT FALSE,
+    running BOOLEAN NOT NULL DEFAULT FALSE,
+    mode VARCHAR(16) NOT NULL DEFAULT 'OFF',
+    last_changed_by BIGINT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_hmi_state_plant_equipment (plant_id, equipment_id),
+    FOREIGN KEY (equipment_id) REFERENCES hmi_equipment(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS hmi_plant_state (
+    plant_id BIGINT PRIMARY KEY,
+    plant_powered BOOLEAN NOT NULL DEFAULT FALSE,
+    auto_sequence_active BOOLEAN NOT NULL DEFAULT FALSE,
+    auto_sequence_step INT DEFAULT 0,
+    last_changed_by BIGINT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (plant_id) REFERENCES plants(plant_id) ON DELETE CASCADE
+);

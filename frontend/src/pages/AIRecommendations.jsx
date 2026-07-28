@@ -6,6 +6,7 @@ import {
 import { Psychology } from '@mui/icons-material';
 import { plantAPI, aiAPI } from '../services/api';
 import { getHealthColor } from '../utils/constants';
+import { pageHeaderRow, pageTitleSx, responsiveSelect } from '../utils/responsive';
 
 export default function AIRecommendations() {
   const [plants, setPlants] = useState([]);
@@ -35,9 +36,9 @@ export default function AIRecommendations() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h5" fontWeight={700}>AI Plant Health Engine</Typography>
-        <FormControl size="small" sx={{ minWidth: 250 }}>
+      <Box sx={pageHeaderRow}>
+        <Typography variant="h5" sx={pageTitleSx}>AI Plant Health Engine</Typography>
+        <FormControl size="small" sx={responsiveSelect}>
           <InputLabel>Plant</InputLabel>
           <Select value={selectedPlant} label="Plant" onChange={(e) => setSelectedPlant(e.target.value)}>
             {plants.map((p) => <MenuItem key={p.plantId} value={p.plantId}>{p.plantName}</MenuItem>)}

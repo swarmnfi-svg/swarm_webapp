@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, Card, CardContent, TextField, MenuItem,
-  Stepper, Step, StepLabel, Alert, Chip, Grid, CircularProgress,
+  Stepper, Step, StepLabel, Alert, Chip, Grid, CircularProgress, useMediaQuery, useTheme,
 } from '@mui/material';
 import { BluetoothConnected, CheckCircle, Error as ErrorIcon } from '@mui/icons-material';
 import { deviceAPI, plantAPI, userAPI } from '../services/api';
@@ -31,6 +31,8 @@ async function espConfigure(ip, password, config) {
 
 export default function ConnectDevice() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { canManageUsers, refreshUser } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
   const [plants, setPlants] = useState([]);
@@ -173,10 +175,14 @@ export default function ConnectDevice() {
         <Typography variant="h5" fontWeight={700}>Connect Sensor Hub</Typography>
       </Box>
       <Typography color="text.secondary" sx={{ mb: 3 }}>
-        Pair each ESP8266 hub to a plant. Admins and managers can assign the device to an operator during pairing.
+        Pair each SWARM MODEL hub to a plant. Admins and managers can assign the device to an operator during pairing.
       </Typography>
 
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+      <Stepper
+        activeStep={activeStep}
+        orientation={isMobile ? 'vertical' : 'horizontal'}
+        sx={{ mb: 4 }}
+      >
         {STEPS.map((label) => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
       </Stepper>
 
@@ -187,7 +193,7 @@ export default function ConnectDevice() {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <TextField fullWidth label="ESP8266 IP address" placeholder="192.168.1.45"
+                <TextField fullWidth label="SWARM MODEL IP address" placeholder="192.168.1.45"
                   value={espIp} onChange={(e) => setEspIp(e.target.value.trim())} />
               </Grid>
               <Grid item xs={12} md={6}>

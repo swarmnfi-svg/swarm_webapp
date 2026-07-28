@@ -112,6 +112,7 @@ swarm_webapp/
 - [API Documentation](docs/API.md)
 - [Partner API (emPOWER Integration)](docs/PARTNER_API.md)
 - [Centralized Auth (emPOWER SaaS SSO)](docs/EMPOWER_CENTRALIZED_AUTH.md)
+- [Plant HMI (P&ID)](docs/PLANT_HMI.md)
 - [Shared Login Connectivity (emPOWER)](docs/EMPOWER_SHARED_LOGIN_CONNECTIVITY.md)
 - [User Manual](docs/USER_MANUAL.md)
 - [ESP Sensor Hub Connection Manual](docs/ESP_SENSOR_HUB_MANUAL.md)

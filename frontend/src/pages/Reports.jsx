@@ -34,9 +34,9 @@ export default function Reports() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" fontWeight={700}>Report Management</Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={() => setDialogOpen(true)}>Generate Report</Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: 'wrap', gap: 2, mb: 3 }}>
+        <Typography variant="h5" fontWeight={700} sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>Report Management</Typography>
+        <Button variant="contained" startIcon={<Add />} onClick={() => setDialogOpen(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>Generate Report</Button>
       </Box>
 
       <Card>

@@ -39,19 +39,19 @@ export default function Notifications() {
       <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>Notification Center</Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={4}>
+        <Grid item xs={12} sm={4}>
           <Card sx={{ textAlign: 'center', p: 2 }}>
             <Typography variant="h3" color="error.main" fontWeight={700}>{counts.active || 0}</Typography>
             <Typography>Active</Typography>
           </Card>
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={12} sm={4}>
           <Card sx={{ textAlign: 'center', p: 2 }}>
             <Typography variant="h3" color="warning.main" fontWeight={700}>{counts.acknowledged || 0}</Typography>
             <Typography>Acknowledged</Typography>
           </Card>
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={12} sm={4}>
           <Card sx={{ textAlign: 'center', p: 2 }}>
             <Typography variant="h3" color="success.main" fontWeight={700}>{counts.resolved || 0}</Typography>
             <Typography>Resolved</Typography>

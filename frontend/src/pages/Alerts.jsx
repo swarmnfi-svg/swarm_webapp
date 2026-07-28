@@ -6,6 +6,7 @@ import {
 import { CheckCircle, DoneAll } from '@mui/icons-material';
 import { alertAPI, plantAPI } from '../services/api';
 import { formatDate } from '../utils/constants';
+import { pageTitleSx, responsiveSelect } from '../utils/responsive';
 
 export default function Alerts() {
   const [plants, setPlants] = useState([]);
@@ -54,9 +55,9 @@ export default function Alerts() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>Alert Management</Typography>
+      <Typography variant="h5" sx={{ mb: 3, ...pageTitleSx }}>Alert Management</Typography>
 
-      <FormControl sx={{ minWidth: 280, mb: 2 }} size="small">
+      <FormControl sx={{ ...responsiveSelect, mb: 2 }} size="small">
         <InputLabel>Plant</InputLabel>
         <Select
           value={selectedPlant}

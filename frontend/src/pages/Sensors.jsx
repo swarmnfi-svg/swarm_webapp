@@ -8,6 +8,7 @@ import { Add, Edit, PowerSettingsNew, Delete } from '@mui/icons-material';
 import { sensorAPI, plantAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { SENSOR_LABELS, getSensorTypesForPlant } from '../utils/constants';
+import { pageHeaderRow, pageTitleSx, responsiveSelect } from '../utils/responsive';
 
 const emptyForm = { plantId: '', nodeName: '', sensorType: 'TEMPERATURE', firmwareVersion: 'v2.1.0', batteryLevel: 100, signalStrength: 90, status: 'ACTIVE' };
 
@@ -58,15 +59,15 @@ export default function Sensors() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h5" fontWeight={700}>Sensor & Hardware Management</Typography>
+      <Box sx={pageHeaderRow}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h5" sx={pageTitleSx}>Sensor & Hardware Management</Typography>
           <Typography variant="body2" color="text.secondary">
             Super admin registers and edits installed hardware for each SaaS project.
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' }, width: { xs: '100%', sm: 'auto' } }}>
+          <FormControl size="small" sx={responsiveSelect}>
             <InputLabel>Filter by Plant</InputLabel>
             <Select value={filterPlant} label="Filter by Plant" onChange={(e) => setFilterPlant(e.target.value)}>
               <MenuItem value="">All Plants</MenuItem>

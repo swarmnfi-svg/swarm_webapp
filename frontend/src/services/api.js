@@ -107,4 +107,11 @@ export const notificationAPI = {
   getAll: () => api.get('/notifications'),
 };
 
+export const hmiAPI = {
+  getDiagram: (plantId) => api.get(`/hmi/${plantId}/diagram`),
+  getState: (plantId) => api.get(`/hmi/${plantId}/state`),
+  sendCommand: (plantId, body) => api.post(`/hmi/${plantId}/commands`, body),
+  sendMaster: (plantId, body) => api.post(`/hmi/${plantId}/master`, body),
+};
+
 export default api;

@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box, Grid, Card, CardContent, Typography, Chip, Select, MenuItem,
   FormControl, InputLabel, CircularProgress, LinearProgress,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  IconButton, Tooltip,
+  IconButton, Tooltip, Button, Alert,
 } from '@mui/material';
 import {
   Opacity, Thermostat, Speed, Air, LocalFireDepartment,
   Co2, Warning, Science, BluetoothConnected, Refresh,
+  PrecisionManufacturing, ArrowForward,
 } from '@mui/icons-material';
-import { plantAPI, dashboardAPI, alertAPI, deviceAPI } from '../services/api';
+import { plantAPI, dashboardAPI, alertAPI, deviceAPI, hmiAPI } from '../services/api';
 import { SENSOR_LABELS, SENSOR_UNITS, getHealthColor, formatDate } from '../utils/constants';
+import { pageHeaderRow, pageTitleSx, responsiveSelect } from '../utils/responsive';
 
 const sensorIcons = {
   PH: <Opacity />, TEMPERATURE: <Thermostat />, TEMPERATURE_TRANSMITTER: <Thermostat />,
@@ -21,9 +24,11 @@ const sensorIcons = {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [plants, setPlants] = useState([]);
   const [selectedPlant, setSelectedPlant] = useState('');
   const [dashboard, setDashboard] = useState(null);
+  const [hmiState, setHmiState] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncingChip, setSyncingChip] = useState('');
@@ -32,6 +37,7 @@ export default function Dashboard() {
     if (!selectedPlant) return;
     dashboardAPI.getDashboard(selectedPlant).then(({ data }) => setDashboard(data.data));
     alertAPI.getAll({ plantId: selectedPlant, status: 'ACTIVE' }).then(({ data }) => setAlerts((data.data || []).slice(0, 5)));
+    hmiAPI.getState(selectedPlant).then(({ data }) => setHmiState(data.data)).catch(() => setHmiState(null));
   };
 
   useEffect(() => {
@@ -96,9 +102,9 @@ export default function Dashboard() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h5" fontWeight={700}>Live Monitoring Dashboard</Typography>
-        <FormControl size="small" sx={{ minWidth: 250 }}>
+      <Box sx={pageHeaderRow}>
+        <Typography variant="h5" sx={pageTitleSx}>Live Monitoring Dashboard</Typography>
+        <FormControl size="small" sx={responsiveSelect}>
           <InputLabel>Select Plant</InputLabel>
           <Select value={selectedPlant} label="Select Plant" onChange={(e) => setSelectedPlant(e.target.value)}>
             {plants.map((p) => (
@@ -107,6 +113,49 @@ export default function Dashboard() {
           </Select>
         </FormControl>
       </Box>
+
+      {hmiState && (
+        <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #1e2430 0%, #0066CC 100%)', color: 'white' }}>
+          <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <PrecisionManufacturing sx={{ fontSize: 40, opacity: 0.9 }} />
+              <Box>
+                <Typography variant="h6" fontWeight={700}>Plant HMI — Interactive P&ID</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.85 }}>
+                  Live process view with simulated power on/off and equipment controls
+                </Typography>
+                <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip
+                    size="small"
+                    label={hmiState.plantPowered ? 'Plant Power ON' : 'Plant Power OFF'}
+                    color={hmiState.plantPowered ? 'success' : 'default'}
+                    sx={{ bgcolor: hmiState.plantPowered ? 'success.dark' : 'rgba(255,255,255,0.15)', color: 'white' }}
+                  />
+                  <Chip
+                    size="small"
+                    label={`${hmiState.runningCount} equipment running`}
+                    sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: 'white' }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+            <Button
+              variant="contained"
+              endIcon={<ArrowForward />}
+              onClick={() => navigate(`/plant-hmi?plantId=${selectedPlant}`)}
+              sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: '#f0f0f0' } }}
+            >
+              Open HMI
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!hmiState && selectedPlant && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          P&ID HMI is available for plants with P&ID configuration (e.g. Tata Steel West Bokaro).
+        </Alert>
+      )}
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
@@ -171,7 +220,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableCell colSpan={9} align="center">
                     <Typography color="text.secondary" sx={{ py: 2 }}>
-                      No paired devices for this plant. Use Connect Device to pair an ESP8266 hub.
+                      No paired devices for this plant. Use Connect Device to pair a SWARM MODEL hub.
                     </Typography>
                   </TableCell>
                 </TableRow>

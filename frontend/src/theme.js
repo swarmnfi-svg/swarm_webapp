@@ -12,7 +12,7 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h4: { fontWeight: 700 },
-    h5: { fontWeight: 600 },
+    h5: { fontWeight: 700 },
     h6: { fontWeight: 600 },
   },
   shape: { borderRadius: 8 },
@@ -25,6 +25,48 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: { textTransform: 'none', fontWeight: 500 },
+      },
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          maxWidth: '100%',
+        },
+      },
+    },
+    MuiTabs: {
+      defaultProps: {
+        variant: 'scrollable',
+        scrollButtons: 'auto',
+        allowScrollButtonsMobile: true,
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: ({ theme: t }) => ({
+          margin: t.spacing(2),
+          width: 'calc(100% - 32px)',
+          maxWidth: '100%',
+          [t.breakpoints.up('sm')]: {
+            margin: t.spacing(4),
+            width: 'auto',
+            maxWidth: 600,
+          },
+        }),
+      },
+    },
+    MuiCardContent: {
+      styleOverrides: {
+        root: ({ theme: t }) => ({
+          padding: t.spacing(2),
+          '&:last-child': { paddingBottom: t.spacing(2) },
+          [t.breakpoints.up('sm')]: {
+            padding: t.spacing(3),
+            '&:last-child': { paddingBottom: t.spacing(3) },
+          },
+        }),
       },
     },
   },

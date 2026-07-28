@@ -208,7 +208,7 @@ public class DeviceService {
                 .nodeName(name)
                 .sensorType(type)
                 .deviceChipId(chipId)
-                .firmwareVersion("esp8266-v1")
+                .firmwareVersion("swarm-model-v1")
                 .batteryLevel(100)
                 .signalStrength(90)
                 .status(NodeStatus.ACTIVE)
@@ -224,7 +224,7 @@ public class DeviceService {
                     node.setDeviceChipId(chipId);
                     node.setNodeName(nodeName);
                     if (node.getFirmwareVersion() == null || node.getFirmwareVersion().isBlank()) {
-                        node.setFirmwareVersion("esp8266-v1");
+                        node.setFirmwareVersion("swarm-model-v1");
                     }
                     return sensorNodeRepository.save(node);
                 })
