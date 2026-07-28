@@ -4,27 +4,35 @@ import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
   InputAdornment, IconButton, Link, CircularProgress, Divider,
 } from '@mui/material';
-import { Visibility, VisibilityOff, PersonAdd } from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
 
-const authShellSx = {
-  minHeight: '100vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'linear-gradient(135deg, #0066CC 0%, #00A86B 100%)',
-  p: 2,
+const O = {
+  amber: '#FF9500',
+  marigold: '#FFB340',
+  deep: '#CC7A00',
+  bg: '#0C0C0E',
+  card: '#18181B',
+  border: '#2E2E33',
+  muted: '#98989F',
+  text: '#F5F5F7',
 };
 
-const cardHeaderSx = {
-  textAlign: 'center',
-  mb: 3,
-  mx: -4,
-  mt: -4,
-  p: 3,
-  bgcolor: '#1e2430',
-  borderRadius: '12px 12px 0 0',
+const inputSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 2,
+    bgcolor: '#111114',
+    color: O.text,
+    '& fieldset': { borderColor: O.border },
+    '&:hover fieldset': { borderColor: '#444' },
+    '&.Mui-focused fieldset': { borderColor: O.amber, borderWidth: 2 },
+    '&.Mui-focused': { boxShadow: '0 0 0 3px rgba(255, 149, 0, 0.18)' },
+  },
+  '& .MuiInputLabel-root': { color: O.muted },
+  '& .MuiInputLabel-root.Mui-focused': { color: O.amber },
+  '& .MuiOutlinedInput-input::placeholder': { color: O.muted },
+  '& .MuiFormHelperText-root': { color: O.muted },
 };
 
 export default function Signup() {
@@ -70,55 +78,110 @@ export default function Signup() {
   };
 
   return (
-    <Box sx={authShellSx}>
-      <Card sx={{ maxWidth: 440, width: '100%', borderRadius: 3 }}>
+    <Box sx={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      p: 2,
+      bgcolor: O.bg,
+      backgroundImage: `
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 149, 0, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 100%, rgba(255, 179, 64, 0.08) 0%, transparent 50%)
+      `,
+    }}>
+      <Card sx={{
+        maxWidth: 420,
+        width: '100%',
+        borderRadius: 3,
+        bgcolor: O.card,
+        border: `1px solid ${O.border}`,
+        boxShadow: '0 0 0 1px rgba(255,149,0,0.06), 0 24px 64px rgba(0,0,0,0.5)',
+      }}>
         <CardContent sx={{ p: 4 }}>
-          <Box sx={cardHeaderSx}>
-            <Logo height={52} sx={{ mx: 'auto' }} />
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Logo height={48} sx={{ mx: 'auto', mb: 2 }} />
+            <Typography variant="overline" sx={{ color: O.amber, letterSpacing: '0.12em', fontWeight: 700 }}>
+              SWARM by nanoFarm
+            </Typography>
+            <Typography variant="body2" sx={{ color: O.muted, mt: 0.5 }}>
+              AI-IoT Plant Health Monitoring
+            </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
-            <PersonAdd color="primary" fontSize="small" />
-            <Typography variant="h6" fontWeight={700}>Create your account</Typography>
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight={700} sx={{ color: O.text, textAlign: 'center', mb: 0.5 }}>
+            Create your account
+          </Typography>
+          <Typography variant="body2" sx={{ color: O.muted, textAlign: 'center', mb: 3 }}>
             Join SWARM to monitor plant health, view alerts, and connect devices.
           </Typography>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
 
           <form onSubmit={handleSubmit}>
-            <TextField fullWidth label="Full name" margin="normal" value={form.name} onChange={updateField('name')} required />
-            <TextField fullWidth label="Email" type="email" margin="normal" value={form.email} onChange={updateField('email')} required />
-            <TextField fullWidth label="Mobile (optional)" type="tel" margin="normal" value={form.mobile} onChange={updateField('mobile')} />
-            <TextField fullWidth label="Password" type={showPassword ? 'text' : 'password'} margin="normal" value={form.password} onChange={updateField('password')} required helperText="At least 6 characters"
-              InputProps={{ endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )}} />
-            <TextField fullWidth label="Confirm password" type={showConfirmPassword ? 'text' : 'password'} margin="normal" value={form.confirmPassword} onChange={updateField('confirmPassword')} required
-              InputProps={{ endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )}} />
-            <Button fullWidth type="submit" variant="contained" size="large" disabled={loading} sx={{ mt: 2, py: 1.5 }}>
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
+            <TextField
+              fullWidth label="Full name" margin="normal"
+              value={form.name} onChange={updateField('name')} required sx={inputSx}
+            />
+            <TextField
+              fullWidth label="Email" type="email" margin="normal"
+              value={form.email} onChange={updateField('email')} required sx={inputSx}
+            />
+            <TextField
+              fullWidth label="Mobile (optional)" type="tel" margin="normal"
+              value={form.mobile} onChange={updateField('mobile')} sx={inputSx}
+            />
+            <TextField
+              fullWidth label="Password" type={showPassword ? 'text' : 'password'} margin="normal"
+              value={form.password} onChange={updateField('password')} required
+              helperText="At least 6 characters" sx={inputSx}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ color: O.amber }}>
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              fullWidth label="Confirm password" type={showConfirmPassword ? 'text' : 'password'} margin="normal"
+              value={form.confirmPassword} onChange={updateField('confirmPassword')} required sx={inputSx}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" sx={{ color: O.amber }}>
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Button
+              fullWidth type="submit" variant="contained" size="large" disabled={loading}
+              sx={{
+                mt: 2.5, py: 1.5, borderRadius: 2,
+                fontWeight: 700, fontSize: '0.95rem', textTransform: 'none',
+                color: '#000',
+                bgcolor: O.amber,
+                boxShadow: `0 0 24px rgba(255, 149, 0, 0.35)`,
+                '&:hover': {
+                  bgcolor: O.marigold,
+                  boxShadow: `0 0 32px rgba(255, 179, 64, 0.45)`,
+                },
+              }}
+            >
+              {loading ? <CircularProgress size={24} sx={{ color: '#000' }} /> : 'Create Account'}
             </Button>
           </form>
 
-          <Divider sx={{ my: 2.5 }} />
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          <Divider sx={{ my: 2.5, borderColor: O.border }} />
+          <Typography variant="body2" sx={{ textAlign: 'center', color: O.muted }}>
             Already have an account?{' '}
-            <Link component={RouterLink} to="/login" underline="hover" fontWeight={600}>Sign in</Link>
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-            Create your SWARM account to access the monitoring dashboard
+            <Link component={RouterLink} to="/login" fontWeight={700} sx={{ color: O.amber, '&:hover': { color: O.marigold } }}>
+              Sign in
+            </Link>
           </Typography>
         </CardContent>
       </Card>
