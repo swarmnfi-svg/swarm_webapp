@@ -11,7 +11,7 @@
 | Item | Value |
 |------|-------|
 | **Tag** | `checkpoint-2026-07-28` |
-| **Commit** | `521473e` — Match signup page UI to login dark amber theme |
+| **Commit** | `9880087` — Checkpoint doc (+ `521473e` signup UI, `2bffe23` Plant HMI) |
 | **Previous milestone** | `2bffe23` — Plant HMI PFD, backend HMI API, responsive UI, user manual |
 | **Remote `swarm`** | `git@github-swarm:swarmnfi-svg/swarm_webapp.git` |
 | **Remote `origin`** | `https://github.com/Srinivas0724/swarm_webapp.git` |
@@ -174,4 +174,4 @@ Agent transcript for this work session:
 
 ---
 
-*Checkpoint created: 2026-07-28. Tag: `checkpoint-2026-07-28` at commit `521473e`.*
+*Checkpoint created: 2026-07-28. Tag: `checkpoint-2026-07-28` at commit `9880087`.*
