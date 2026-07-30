@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
-export PORT="${PORT:-80}"
+export PORT="${PORT:-8080}"
 envsubst '${PORT}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
-echo "=== nginx config ==="
-cat /etc/nginx/conf.d/default.conf
+nginx -t
 exec nginx -g 'daemon off;'
