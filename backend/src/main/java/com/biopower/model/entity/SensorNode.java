@@ -31,7 +31,7 @@ public class SensorNode {
     private String nodeName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sensor_type", nullable = false)
+    @Column(name = "sensor_type", nullable = false, length = 50)
     private SensorType sensorType;
 
     @Column(name = "device_chip_id", length = 32)
