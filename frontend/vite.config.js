@@ -19,5 +19,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    assetsDir: 'assets',
   },
+  // '/' for browser deploy; Capacitor WebView serves from https://localhost root
+  base: '/',
 });

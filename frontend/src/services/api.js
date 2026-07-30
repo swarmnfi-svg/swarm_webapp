@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const PRODUCTION_API = 'https://app.swarm.co.in/api';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? PRODUCTION_API : '/api'),
   headers: { 'Content-Type': 'application/json' },
 });
 

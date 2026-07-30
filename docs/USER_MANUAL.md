@@ -24,7 +24,8 @@ In the web app, open **User Manual** in the sidebar (`/help`). Content is filter
 12. [User roles](#12-user-roles)
 13. [Notifications](#13-notifications)
 14. [Settings (Super Admin)](#14-settings-super-admin)
-15. [Development — run locally](#15-development--run-locally)
+15. [Android APK (phone & tablet)](#15-android-apk-phone--tablet)
+16. [Development — run locally](#16-development--run-locally)
 
 ---
 
@@ -361,7 +362,22 @@ Configure:
 
 ---
 
-## 15. Development — run locally
+## 15. Android APK (phone & tablet)
+
+The same SWARM web app runs inside a native Android shell (Capacitor). UI/UX is unchanged; responsive layouts already support phones and tablets.
+
+| Item | Location |
+|------|----------|
+| **Debug APK** | `releases/SWARM-debug.apk` |
+| **Build guide** | [ANDROID_APK.md](./ANDROID_APK.md) |
+
+**Install:** copy APK to phone/tablet and open (allow unknown apps if prompted).
+
+**Backend:** APK uses `VITE_API_URL` from `frontend/.env.production`. Railway `CORS_ORIGINS` must include `https://localhost`.
+
+---
+
+## 16. Development — run locally
 
 ### Git — push code
 

@@ -7,6 +7,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
+import { networkErrorMessage } from '../utils/networkError';
 
 const O = {
   amber: '#FF9500',
@@ -52,11 +53,9 @@ export default function Login() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      if (!err.response) {
-        setError(
-          'Cannot reach the server. On another PC, open the app at the host computer\'s LAN address '
-          + `(e.g. http://192.168.29.22:3000), not localhost. Ensure both frontend and backend are running on the host.`
-        );
+      const networkMsg = networkErrorMessage(err);
+      if (networkMsg) {
+        setError(networkMsg);
       } else if (err.response.status === 401) {
         setError(err.response.data?.message || 'Invalid email or password');
       } else {

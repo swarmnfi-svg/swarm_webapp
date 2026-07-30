@@ -101,6 +101,13 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .collect(Collectors.toList());
+        // Capacitor Android/iOS WebView (required for mobile APK)
+        if (!origins.contains("https://localhost")) {
+            origins.add("https://localhost");
+        }
+        if (!origins.contains("capacitor://localhost")) {
+            origins.add("capacitor://localhost");
+        }
         config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

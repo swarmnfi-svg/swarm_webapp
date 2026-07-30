@@ -7,6 +7,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
+import { networkErrorMessage } from '../utils/networkError';
 
 const O = {
   amber: '#FF9500',
@@ -67,12 +68,17 @@ export default function Signup() {
       });
       navigate('/dashboard');
     } catch (err) {
-      const apiMessage = err.response?.data?.message;
-      const fieldErrors = err.response?.data?.data;
-      if (fieldErrors && typeof fieldErrors === 'object') {
-        setError(Object.values(fieldErrors).join('. '));
+      const networkMsg = networkErrorMessage(err);
+      if (networkMsg) {
+        setError(networkMsg);
       } else {
-        setError(apiMessage || 'Unable to create account. Please try again.');
+        const apiMessage = err.response?.data?.message;
+        const fieldErrors = err.response?.data?.data;
+        if (fieldErrors && typeof fieldErrors === 'object') {
+          setError(Object.values(fieldErrors).join('. '));
+        } else {
+          setError(apiMessage || 'Unable to create account. Please try again.');
+        }
       }
     }
   };
