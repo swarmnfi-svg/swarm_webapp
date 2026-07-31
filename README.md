@@ -32,11 +32,13 @@ Access the application at **http://localhost**
 
 ### Default Credentials
 
+The application ships with the **Tata Steel West Bokaro Biomethanation Plant** as the demo site.
+
 | Role | Email | Password |
 |------|-------|----------|
-| Super Admin | admin@biopower.com | admin123 |
-| Plant Admin | manager@biopower.com | manager123 |
-| Operator | operator@biopower.com | operator123 |
+| Super Admin | swarm.nfi@gmail.com | Swarm@2026 |
+| Plant Admin | tata.admin@tatasteel.com | TataSteel@2026 |
+| Operator | tata.operator@tatasteel.com | TataSteel@2026 |
 
 ## Local Development
 

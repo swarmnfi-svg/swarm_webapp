@@ -4,6 +4,9 @@ import com.biopower.model.entity.Alert;
 import com.biopower.model.enums.AlertSeverity;
 import com.biopower.model.enums.AlertStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,4 +23,8 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     long countByStatus(AlertStatus status);
     List<Alert> findBySeverity(AlertSeverity severity);
     boolean existsByPlantIdAndTitleAndStatus(Long plantId, String title, AlertStatus status);
+
+    @Modifying
+    @Query("DELETE FROM Alert a WHERE a.plantId = :plantId")
+    void deleteByPlantId(@Param("plantId") Long plantId);
 }

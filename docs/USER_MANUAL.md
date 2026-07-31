@@ -43,10 +43,11 @@ In the web app, open **User Manual** in the sidebar (`/help`). Content is filter
 2. Enter your registered email.
 3. Check your email for reset instructions.
 
-### Demo credentials (Tata Steel HMI plant)
+### Demo credentials (Tata Steel plant)
 
 | Role | Email | Password |
 |------|-------|----------|
+| Super Admin | swarm.nfi@gmail.com | Swarm@2026 |
 | Plant Admin | tata.admin@tatasteel.com | TataSteel@2026 |
 | Operator | tata.operator@tatasteel.com | TataSteel@2026 |
 
@@ -215,7 +216,7 @@ Technical details, API endpoints, and database tables: **[Plant HMI technical gu
 Repo copy with screenshots:
 
 **[ESP Sensor Hub Connection Manual](./ESP_SENSOR_HUB_MANUAL.md)**  
-Screenshots: [`docs/manual-screenshots/`](./manual-screenshots/)
+Screenshots: [`frontend/public/manual-screenshots/`](../frontend/public/manual-screenshots/)
 
 Quick summary:
 
@@ -368,8 +369,7 @@ The same SWARM web app runs inside a native Android shell (Capacitor). UI/UX is 
 
 | Item | Location |
 |------|----------|
-| **Debug APK** | `releases/SWARM-debug.apk` |
-| **Build guide** | [ANDROID_APK.md](./ANDROID_APK.md) |
+| **APK build** | See [ANDROID_APK.md](./ANDROID_APK.md) |
 
 **Install:** copy APK to phone/tablet and open (allow unknown apps if prompted).
 

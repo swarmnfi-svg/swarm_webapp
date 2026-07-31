@@ -1,9 +1,5 @@
 # SWARM Android APK builds
 
-| File | Description |
-|------|-------------|
-| `SWARM-debug.apk` | Debug APK for phones and tablets (install directly) |
+APK files are not stored in this repository. Build release or debug APKs locally — see `docs/ANDROID_APK.md`.
 
-Built with Capacitor — same web UI as the browser app.
-
-Rebuild: see `docs/ANDROID_APK.md`
+Copy `frontend/.env.production.example` to `frontend/.env.production` and set your production API URL before building.

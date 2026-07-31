@@ -72,21 +72,22 @@ SAAS_APP_URL=https://app.swarm.co.in
 
 ```env
 VITE_API_URL=https://backend-production-a841.up.railway.app/api
-API_PROXY_URL=https://backend-production-a841.up.railway.app/api/
 ```
 
-`API_PROXY_URL` is used by nginx to proxy `https://app.swarm.co.in/api/*` to the backend (required for mobile APK).
+The web app and APK call the backend API directly (no nginx `/api` proxy).
 
 ---
 
 ## Deploy workflow
 
-Push to GitHub → Railway auto-redeploys **backend** and **swarm_webapp**:
+**Railway auto-deploys from:** `swarmnfi-svg/swarm_webapp` (not `Srinivas0724/swarm_webapp`).
+
+Push to **both** remotes when releasing:
 
 ```powershell
 cd C:\Users\seena\swarm_webapp
-git push origin main
-# or your production remote
+git push origin main    # Srinivas0724 fork
+git push swarm main     # Railway production (required)
 ```
 
 Manual deploy:
@@ -98,10 +99,11 @@ railway up ./frontend --path-as-root -s swarm_webapp -d -y
 
 ---
 
-## Demo logins (Tata Steel HMI)
+## Demo logins (Tata Steel plant)
 
 | Role | Email | Password |
 |------|-------|----------|
+| Super Admin | swarm.nfi@gmail.com | Swarm@2026 |
 | Plant Admin | tata.admin@tatasteel.com | TataSteel@2026 |
 | Operator | tata.operator@tatasteel.com | TataSteel@2026 |
 
@@ -109,8 +111,8 @@ railway up ./frontend --path-as-root -s swarm_webapp -d -y
 
 ## APK notes
 
-- APK is built with `VITE_API_URL` from `frontend/.env.production`
-- For same-domain API: `https://app.swarm.co.in/api` (nginx must proxy to backend)
+- APK is built with `VITE_API_URL` from `frontend/.env.production` (copy from `.env.production.example`)
+- Build via `docs/ANDROID_APK.md` — do not commit debug APKs to the repo
 - CORS must include `capacitor://localhost` and `https://localhost` on **backend**
 
 ---

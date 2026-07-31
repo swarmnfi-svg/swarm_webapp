@@ -122,6 +122,7 @@ Seeded automatically for plants whose feedstock references `P&ID` (Tata Steel de
 
 | Role | Email | Password |
 |------|-------|----------|
+| Super Admin | swarm.nfi@gmail.com | Swarm@2026 |
 | Plant Admin | tata.admin@tatasteel.com | TataSteel@2026 |
 | Operator | tata.operator@tatasteel.com | TataSteel@2026 |
 

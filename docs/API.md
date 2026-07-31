@@ -10,7 +10,7 @@ All authenticated endpoints require header: `Authorization: Bearer <token>`
 
 ### POST /auth/login
 ```json
-{ "email": "admin@biopower.com", "password": "admin123" }
+{ "email": "swarm.nfi@gmail.com", "password": "Swarm@2026" }
 ```
 Response: `{ "success": true, "data": { "token": "...", "role": "SUPER_ADMIN", ... } }`
 

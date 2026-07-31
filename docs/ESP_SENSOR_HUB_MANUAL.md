@@ -4,7 +4,7 @@
 
 This guide covers the full flow: admin first flash → field Wi‑Fi setup with Unique ID → pairing the hub in the SWARM web app → verifying live readings.
 
-Screenshots are stored in [`manual-screenshots/`](./manual-screenshots/) (sharp PNG, no blur).
+Screenshots are stored in [`../frontend/public/manual-screenshots/`](../frontend/public/manual-screenshots/) (sharp PNG, no blur).
 
 ---
 
@@ -66,7 +66,7 @@ Use this when the hub is moved to a new site, or the first time it needs site Wi
    - Network: `SWARM-Setup-<chipId>` (example: `SWARM-Setup-a273c8`)
    - Password: the admin **Device Unique ID**
 
-![Phone Wi-Fi — join ESP hotspot](./manual-screenshots/07-phone-wifi-hotspot.png)
+![Phone Wi-Fi — join ESP hotspot](../frontend/public/manual-screenshots/07-phone-wifi-hotspot.png)
 
 ### Step B2 — Open the setup page
 
@@ -91,7 +91,7 @@ Fill the form:
 
 Click **Save & Restart**.
 
-![ESP Wi-Fi Setup page](./manual-screenshots/02-esp-wifi-setup.png)
+![ESP Wi-Fi Setup page](../frontend/public/manual-screenshots/02-esp-wifi-setup.png)
 
 Wrong Unique ID → Wi‑Fi is **not** changed.
 
@@ -103,7 +103,7 @@ After restart, the ESP joins the site Wi‑Fi. On a PC on the same network, open
 
 Example response:
 
-![ESP /info JSON](./manual-screenshots/01-esp-info.png)
+![ESP /info JSON](../frontend/public/manual-screenshots/01-esp-info.png)
 
 Useful fields:
 
@@ -124,7 +124,7 @@ PC and ESP must be on the **same Wi‑Fi**. Backend must be reachable on a **LAN
 1. Login to SWARM (example: `http://localhost:3000`).
 2. In the sidebar, click **Connect Device**.
 
-![Connect Device — Step 1 empty](./manual-screenshots/04-connect-device-step1.png)
+![Connect Device — Step 1 empty](../frontend/public/manual-screenshots/04-connect-device-step1.png)
 
 ### Step C2 — Connect to ESP
 
@@ -132,11 +132,11 @@ PC and ESP must be on the **same Wi‑Fi**. Backend must be reachable on a **LAN
 2. Enter **Device password** (from firmware /setup — not the Unique ID).
 3. Click **Connect**.
 
-![Connect Device — IP and password filled](./manual-screenshots/04-connect-device-step1-filled.png)
+![Connect Device — IP and password filled](../frontend/public/manual-screenshots/04-connect-device-step1-filled.png)
 
 If the password is wrong you will see:
 
-![Wrong device password example](./manual-screenshots/04c-wrong-password-example.png)
+![Wrong device password example](../frontend/public/manual-screenshots/04c-wrong-password-example.png)
 
 Use the Device Password from Arduino /setup, not the Unique ID.
 
@@ -153,11 +153,11 @@ After a successful connect you should see live readings, then:
    Do **not** use `http://localhost:8080/api`.
 4. Click **Pair with SWARM**
 
-![Connect Device — Step 2 check sensors and pair](./manual-screenshots/05-connect-device-step2.png)
+![Connect Device — Step 2 check sensors and pair](../frontend/public/manual-screenshots/05-connect-device-step2.png)
 
 ### Step C4 — Success
 
-![Connect Device — paired successfully](./manual-screenshots/06-connect-device-step3.png)
+![Connect Device — paired successfully](../frontend/public/manual-screenshots/06-connect-device-step3.png)
 
 Click **Go to Dashboard**. The ESP sends Temperature, Humidity, and Methane every ~30 seconds.
 
@@ -170,7 +170,7 @@ Open **Dashboard**, select the plant, and confirm:
 - Paired Devices row shows Chip ID / IP / readings
 - Sensor Overview shows Temperature, Humidity, Methane
 
-![Dashboard with paired ESP hub](./manual-screenshots/03-swarm-dashboard.png)
+![Dashboard with paired ESP hub](../frontend/public/manual-screenshots/03-swarm-dashboard.png)
 
 ---
 

@@ -361,22 +361,23 @@ def build():
     pdf.sub_title("Production")
     pdf.bullet("App: https://app.swarm.co.in")
     pdf.bullet("Plant HMI: https://app.swarm.co.in/plant-hmi")
-    pdf.sub_title("Tata Steel demo (HMI plant)")
+    pdf.sub_title("Tata Steel demo plant")
     pdf.table(
         ["Role", "Email", "Password"],
         [
+            ["Super Admin", "swarm.nfi@gmail.com", "Swarm@2026"],
             ["Plant Admin", "tata.admin@tatasteel.com", "TataSteel@2026"],
             ["Operator", "tata.operator@tatasteel.com", "TataSteel@2026"],
         ],
         [40, 80, 70],
     )
-    pdf.sub_title("Local dev defaults")
+    pdf.sub_title("Local dev")
     pdf.table(
         ["Role", "Email", "Password"],
         [
-            ["Super Admin", "admin@biopower.com", "admin123"],
-            ["Plant Admin", "manager@biopower.com", "manager123"],
-            ["Operator", "operator@biopower.com", "operator123"],
+            ["Super Admin", "swarm.nfi@gmail.com", "Swarm@2026"],
+            ["Plant Admin", "tata.admin@tatasteel.com", "TataSteel@2026"],
+            ["Operator", "tata.operator@tatasteel.com", "TataSteel@2026"],
         ],
         [40, 80, 70],
     )

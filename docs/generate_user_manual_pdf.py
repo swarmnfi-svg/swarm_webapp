@@ -162,10 +162,11 @@ def build():
     pdf.numbered(1, "Click Forgot Password? on the login page.")
     pdf.numbered(2, "Enter your registered email.")
     pdf.numbered(3, "Check your email for reset instructions.")
-    pdf.sub_title("Demo credentials (Tata Steel HMI plant)")
+    pdf.sub_title("Demo credentials (Tata Steel plant)")
     pdf.table(
         ["Role", "Email", "Password"],
         [
+            ["Super Admin", "swarm.nfi@gmail.com", "Swarm@2026"],
             ["Plant Admin", "tata.admin@tatasteel.com", "TataSteel@2026"],
             ["Operator", "tata.operator@tatasteel.com", "TataSteel@2026"],
         ],
@@ -404,8 +405,7 @@ def build():
     pdf.bullet("Report schedule: automated report timing")
 
     pdf.section_title("15. Android APK (phone and tablet)")
-    pdf.bullet("Debug APK: releases/SWARM-debug.apk")
-    pdf.bullet("Build guide: docs/ANDROID_APK.md")
+    pdf.bullet("Build APK locally — see docs/ANDROID_APK.md")
     pdf.body("Install by copying APK to device. Backend URL from VITE_API_URL in frontend/.env.production.")
 
     pdf.section_title("16. Development - Run Locally")

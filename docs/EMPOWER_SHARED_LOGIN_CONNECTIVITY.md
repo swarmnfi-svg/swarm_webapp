@@ -95,8 +95,8 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@biopower.com",
-  "password": "admin123"
+  "email": "swarm.nfi@gmail.com",
+  "password": "Swarm@2026"
 }
 ```
 

@@ -32,7 +32,7 @@ docker-compose ps
 
 ### Step 3: Access Application
 
-Open http://localhost and login with `admin@biopower.com` / `admin123`
+Open http://localhost and login with `swarm.nfi@gmail.com` / `Swarm@2026`
 
 ---
 
@@ -203,6 +203,6 @@ cd C:\Users\seena\swarm_webapp\frontend
 npm run dev
 ```
 
-Open **http://localhost:3000** — login: `admin@biopower.com` / `admin123`
+Open **http://localhost:3000** — login: `swarm.nfi@gmail.com` / `Swarm@2026`
 
 Sample data is created automatically on first startup.

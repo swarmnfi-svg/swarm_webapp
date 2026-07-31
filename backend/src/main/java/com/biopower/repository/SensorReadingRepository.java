@@ -3,6 +3,7 @@ package com.biopower.repository;
 import com.biopower.model.entity.SensorReading;
 import com.biopower.model.enums.SensorType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -67,4 +68,8 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
             @Param("sensorType") SensorType sensorType,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Modifying
+    @Query("DELETE FROM SensorReading r WHERE r.plantId = :plantId")
+    void deleteByPlantId(@Param("plantId") Long plantId);
 }
