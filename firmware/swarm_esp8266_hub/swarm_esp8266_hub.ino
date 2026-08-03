@@ -12,6 +12,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266mDNS.h>
 #include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 #include <DHT.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
@@ -20,6 +21,8 @@
 const char* WIFI_SSID = "BPG renewables 2g";
 const char* WIFI_PASSWORD = "biopowerindia";
 const char* DEVICE_PASSWORD = "1234";
+/** Hotspot password for SWARM-Setup-<chipId> when station Wi-Fi fails (min 8 chars). */
+const char* DEVICE_UNIQUE_ID = "SWARM-ESP-001";
 
 // ---------- Pins ----------
 #define DHT_PIN D4
@@ -53,6 +56,8 @@ ESP8266WebServer server(80);
 float lastTemp = NAN, lastHumidity = NAN;
 int lastGasRaw = -1;
 bool dhtOk = false, mq5Ok = false;
+bool apMode = false;
+String apSsidName;
 String sessionToken;
 unsigned long lastSensorRead = 0;
 unsigned long lastSwarmSend = 0;
@@ -171,8 +176,6 @@ bool sendToSwarm() {
   if (!swarmCfg.configured || strlen(swarmCfg.swarmUrl) == 0) return false;
   if (!dhtOk && !mq5Ok) return false;
 
-  WiFiClient client;
-  HTTPClient http;
   String url = String(swarmCfg.swarmUrl);
   if (!url.endsWith("/iot/batch")) {
     if (url.endsWith("/")) url.remove(url.length() - 1);
@@ -208,10 +211,24 @@ bool sendToSwarm() {
   String body;
   serializeJson(doc, body);
 
-  http.begin(client, url);
-  http.addHeader("Content-Type", "application/json");
-  int code = http.POST(body);
-  http.end();
+  int code = -1;
+  bool useTls = url.startsWith("https://");
+  if (useTls) {
+    BearSSL::WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+    HTTPClient http;
+    http.begin(secureClient, url);
+    http.addHeader("Content-Type", "application/json");
+    code = http.POST(body);
+    http.end();
+  } else {
+    WiFiClient client;
+    HTTPClient http;
+    http.begin(client, url);
+    http.addHeader("Content-Type", "application/json");
+    code = http.POST(body);
+    http.end();
+  }
 
   return (code == 200 || code == 201);
 }
@@ -238,6 +255,11 @@ void handleInfo() {
   json += "\"name\":\"SWARM-SensorHub\",";
   json += "\"chipId\":\"" + chipId() + "\",";
   json += "\"ip\":\"" + WiFi.localIP().toString() + "\",";
+  if (apMode) {
+    json += "\"apIp\":\"" + WiFi.softAPIP().toString() + "\",";
+    json += "\"apSsid\":\"" + apSsidName + "\",";
+  }
+  json += "\"wifiConnected\":" + String(WiFi.status() == WL_CONNECTED ? "true" : "false") + ",";
   json += "\"sensors\":[\"DHT11\",\"MQ5\"],";
   json += "\"swarmConfigured\":" + String(swarmCfg.configured ? "true" : "false");
   json += "}";
@@ -401,8 +423,21 @@ void setupRoutes() {
   });
 }
 
+void startSetupAp() {
+  apMode = true;
+  apSsidName = "SWARM-Setup-" + chipId();
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAP(apSsidName.c_str(), DEVICE_UNIQUE_ID);
+  Serial.println("Wi-Fi failed. Use setup AP to enter new credentials.");
+  Serial.println("AP SSID: " + apSsidName);
+  Serial.println("AP password: " + String(DEVICE_UNIQUE_ID));
+  Serial.println("Setup URL: http://192.168.4.1/setup");
+}
+
 void connectWiFi() {
   WiFi.mode(WIFI_STA);
+  Serial.print("Connecting to SSID: ");
+  Serial.println(getWifiSsid());
   WiFi.begin(getWifiSsid(), getWifiPass());
 
   Serial.print("Connecting Wi-Fi");
@@ -417,7 +452,7 @@ void connectWiFi() {
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
   } else {
-    Serial.println("Wi-Fi failed. Check SSID/password.");
+    startSetupAp();
   }
 }
 
@@ -448,8 +483,12 @@ void setup() {
 
   Serial.println("ESP ready");
   Serial.println("Chip ID: " + chipId());
+  Serial.println("Device Unique ID: [" + String(DEVICE_UNIQUE_ID) + "]");
   Serial.println("Device password: [" + String(getDevicePassword()) + "]");
   Serial.println("SWARM configured: " + String(swarmCfg.configured ? "yes" : "no"));
+  if (apMode) {
+    Serial.println("AP IP: " + WiFi.softAPIP().toString());
+  }
 }
 
 void loop() {

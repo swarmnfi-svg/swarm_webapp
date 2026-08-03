@@ -4,7 +4,7 @@ import com.biopower.exception.BadRequestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,15 +16,23 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.InetAddress;
+import java.time.Duration;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class EspProxyService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SwarmUrlService swarmUrlService;
+
+    public EspProxyService(RestTemplateBuilder builder, SwarmUrlService swarmUrlService) {
+        this.restTemplate = builder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(8))
+                .build();
+        this.swarmUrlService = swarmUrlService;
+    }
 
     public String fetchInfo(String ip) {
         return get(ip, "/info", null);

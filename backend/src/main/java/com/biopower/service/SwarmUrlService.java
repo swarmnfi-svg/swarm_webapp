@@ -12,10 +12,26 @@ import java.util.Collections;
 @Service
 public class SwarmUrlService {
 
+    @Value("${biopower.swarm.public-api-url:}")
+    private String configuredPublicApiUrl;
+
     @Value("${server.port:8080}")
     private int serverPort;
 
+    /**
+     * URL the ESP hub POSTs to ({base}/iot/batch). Prefer explicit production config,
+     * then Railway public domain, then developer LAN IP.
+     */
     public String resolveSwarmBaseUrl() {
+        if (configuredPublicApiUrl != null && !configuredPublicApiUrl.isBlank()) {
+            return normalizeApiBase(configuredPublicApiUrl);
+        }
+
+        String railwayDomain = System.getenv("RAILWAY_PUBLIC_DOMAIN");
+        if (railwayDomain != null && !railwayDomain.isBlank()) {
+            return "https://" + railwayDomain.trim() + "/api";
+        }
+
         try {
             for (NetworkInterface networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
                 if (!networkInterface.isUp() || networkInterface.isLoopback()) {
@@ -39,7 +55,18 @@ public class SwarmUrlService {
         String lower = url.toLowerCase();
         if (lower.contains("localhost") || lower.contains("127.0.0.1")) {
             throw new com.biopower.exception.BadRequestException(
-                    "ESP cannot use localhost. Use your PC's LAN IP address instead.");
+                    "ESP cannot use localhost. Use your PC's LAN IP or the production SWARM API URL.");
         }
+    }
+
+    static String normalizeApiBase(String url) {
+        String base = url.trim();
+        while (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        if (!base.endsWith("/api")) {
+            base = base + "/api";
+        }
+        return base;
     }
 }

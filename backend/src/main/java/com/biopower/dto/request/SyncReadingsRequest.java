@@ -14,4 +14,6 @@ public class SyncReadingsRequest {
     private Long plantId;
     @NotBlank
     private String chipId;
+    /** When set, readings are taken from the browser (LAN) instead of server-side ESP proxy. */
+    private EspStatusSnapshot status;
 }

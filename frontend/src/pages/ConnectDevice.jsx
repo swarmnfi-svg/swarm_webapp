@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { BluetoothConnected, CheckCircle, Error as ErrorIcon } from '@mui/icons-material';
 import { deviceAPI, plantAPI, userAPI } from '../services/api';
+import { fetchEspInfo, fetchEspStatus, configureEsp } from '../utils/espClient';
 import { useAuth } from '../context/AuthContext';
 
 const STEPS = ['Connect to ESP', 'Check sensors', 'Pair with SWARM'];
@@ -18,15 +19,13 @@ function isLocalhostUrl(url) {
 
 async function espFetch(ip, path, password) {
   if (path === '/api/status') {
-    const { data } = await deviceAPI.espStatus(ip, password);
-    return typeof data === 'string' ? JSON.parse(data) : data;
+    return fetchEspStatus(ip, password);
   }
   throw new Error(`Unsupported path: ${path}`);
 }
 
 async function espConfigure(ip, password, config) {
-  const { data } = await deviceAPI.espConfigure(ip, password, config);
-  return typeof data === 'string' ? JSON.parse(data) : data;
+  return configureEsp(ip, password, config);
 }
 
 export default function ConnectDevice() {
@@ -77,19 +76,20 @@ export default function ConnectDevice() {
     try {
       const normalizedIp = espIp.trim();
       const normalizedPassword = devicePassword.trim();
-      const infoRes = await deviceAPI.espInfo(normalizedIp);
-      const info = typeof infoRes.data === 'string' ? JSON.parse(infoRes.data) : infoRes.data;
+      const info = await fetchEspInfo(normalizedIp);
       const status = await espFetch(normalizedIp, '/api/status', normalizedPassword);
       setEspInfo(info);
       setEspStatus(status);
       setDeviceName((prev) => prev || `ESP-Hub-${info.chipId?.slice(-4) || 'node'}`);
       setActiveStep(1);
     } catch (e) {
-      const msg = e.response?.data?.message || e.message || '';
+      const msg = e.message || e.response?.data?.message || '';
       if (msg.toLowerCase().includes('password')) {
-        setError('Wrong device password. Use DEVICE_PASSWORD from Arduino code (default: 1234).');
+        setError('Wrong device password. Use the Device Password from firmware /setup (yours: "22 22" with the space).');
+      } else if (msg.includes('SWARM-Setup') || msg.includes('192.168.4.1')) {
+        setError(msg);
       } else {
-        setError(msg || `Cannot reach ESP at ${espIp}. Check it is powered on and on same Wi-Fi.`);
+        setError(msg || `Cannot reach ESP at ${espIp}. Open http://${espIp}/info in your browser. If Wi-Fi failed, use http://192.168.4.1/setup via SWARM-Setup hotspot.`);
       }
     } finally {
       setLoading(false);
@@ -140,6 +140,11 @@ export default function ConnectDevice() {
         password: normalizedPassword,
         plantId: paired.plantId,
         chipId: paired.chipId,
+        status: {
+          dht: espStatus?.dht,
+          mq5: espStatus?.mq5,
+          rssi: espStatus?.rssi,
+        },
       });
 
       sessionStorage.setItem(DASHBOARD_PLANT_KEY, String(paired.plantId));
@@ -175,8 +180,14 @@ export default function ConnectDevice() {
         <Typography variant="h5" fontWeight={700}>Connect Sensor Hub</Typography>
       </Box>
       <Typography color="text.secondary" sx={{ mb: 3 }}>
-        Pair each SWARM MODEL hub to a plant. Admins and managers can assign the device to an operator during pairing.
+        Pair each SWARM MODEL hub to a plant. Your PC/phone must be on the <strong>same Wi‑Fi</strong> as the ESP.
+        Connect Device talks to the hub directly from your browser (not via the cloud server).
       </Typography>
+
+      <Alert severity="info" sx={{ mb: 2 }}>
+        If the ESP cannot join Wi‑Fi, join hotspot <strong>SWARM-Setup-{'{chipId}'}</strong> (password = Device Unique ID),
+        open <strong>http://192.168.4.1/setup</strong>, then use IP <strong>192.168.4.1</strong> here.
+      </Alert>
 
       <Stepper
         activeStep={activeStep}
@@ -282,7 +293,7 @@ export default function ConnectDevice() {
               <Grid item xs={12}>
                 <TextField fullWidth label="SWARM server URL" value={swarmUrl}
                   onChange={(e) => setSwarmUrl(e.target.value)}
-                  helperText="Must be your PC's LAN IP — ESP cannot use localhost"
+                  helperText="Auto-filled from server. Use LAN IP for local dev, or production API URL for cloud SWARM."
                   error={isLocalhostUrl(swarmUrl)} />
               </Grid>
               <Grid item xs={12}>

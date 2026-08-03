@@ -66,6 +66,7 @@ IDENTITY_MODE=saas
 SAAS_ACCOUNTS_URL=https://accounts.empowerapp.in
 SAAS_CLIENT_ID=swarm_webapp
 SAAS_APP_URL=https://app.swarm.co.in
+SWARM_PUBLIC_API_URL=https://backend-production-a841.up.railway.app/api
 
 # Nova Space OP — LLM provider failover (set in Railway, never commit values)
 NOVA_SPACE_OP_ENABLED=true

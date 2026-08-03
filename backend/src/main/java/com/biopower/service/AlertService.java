@@ -50,6 +50,7 @@ public class AlertService {
             case TEMPERATURE, TEMPERATURE_TRANSMITTER -> evaluateTemperature(reading);
             case PRESSURE, PRESSURE_TRANSMITTER -> evaluatePressure(reading);
             case GAS_FLOW, FLOW_TRANSMITTER -> evaluateGasFlow(reading);
+            case METHANE -> evaluateMethane(reading);
             default -> {}
         }
     }
@@ -93,6 +94,20 @@ public class AlertService {
             createAlert(reading, "Gas Flow Drop Detected",
                     String.format("Sudden gas flow drop detected: %.2f m³/h", reading.getValue()),
                     AlertSeverity.WARNING, 0.5, reading.getValue());
+        }
+    }
+
+    /** MQ5 ESP hubs send raw ADC (0–1023); align with firmware warning thresholds. */
+    private void evaluateMethane(SensorReading reading) {
+        double value = reading.getValue();
+        if (value > 800) {
+            createAlert(reading, "Critical Gas Level",
+                    String.format("MQ5 gas sensor reading %.0f exceeds critical threshold (800)", value),
+                    AlertSeverity.CRITICAL, 800, value);
+        } else if (value > 500) {
+            createAlert(reading, "High Gas Level",
+                    String.format("MQ5 gas sensor reading %.0f exceeds warning threshold (500)", value),
+                    AlertSeverity.WARNING, 500, value);
         }
     }
 

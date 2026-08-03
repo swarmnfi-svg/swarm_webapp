@@ -1,6 +1,7 @@
 package com.biopower.service;
 
 import com.biopower.dto.request.DevicePairRequest;
+import com.biopower.dto.request.EspStatusSnapshot;
 import com.biopower.dto.request.IoTBatchRequest;
 import com.biopower.dto.request.SyncReadingsRequest;
 import com.biopower.dto.response.DevicePairResponse;
@@ -114,14 +115,60 @@ public class DeviceService {
 
         persistDeviceIp(nodes, request.getIp());
 
+        if (request.getStatus() != null) {
+            ingestStatusSnapshot(request.getPlantId(), chipId, nodes, request.getStatus());
+            return;
+        }
+
         String statusJson = espProxyService.fetchStatus(request.getIp(), request.getPassword());
         JsonNode status = espProxyService.parseJson(statusJson);
+        ingestStatusJson(request.getPlantId(), chipId, nodes, status);
+    }
 
+    private void ingestStatusSnapshot(Long plantId, String chipId, List<SensorNode> nodes,
+                                      EspStatusSnapshot status) {
         Map<SensorType, SensorNode> byType = nodes.stream()
                 .collect(Collectors.toMap(SensorNode::getSensorType, Function.identity(), (a, b) -> a));
 
         IoTBatchRequest batch = new IoTBatchRequest();
-        batch.setPlantId(request.getPlantId());
+        batch.setPlantId(plantId);
+        batch.setChipId(chipId);
+        if (status.getRssi() != null) {
+            batch.setRssi(status.getRssi());
+        }
+
+        List<IoTBatchRequest.Reading> readings = new ArrayList<>();
+        if (status.getDht() != null && status.getDht().isOk()) {
+            SensorNode tempNode = byType.get(SensorType.TEMPERATURE);
+            SensorNode humNode = byType.get(SensorType.HUMIDITY);
+            if (tempNode != null && status.getDht().getTemp() != null) {
+                readings.add(reading(tempNode.getNodeId(), SensorType.TEMPERATURE, status.getDht().getTemp()));
+            }
+            if (humNode != null && status.getDht().getHumidity() != null) {
+                readings.add(reading(humNode.getNodeId(), SensorType.HUMIDITY, status.getDht().getHumidity()));
+            }
+        }
+        if (status.getMq5() != null && status.getMq5().isOk()) {
+            SensorNode gasNode = byType.get(SensorType.METHANE);
+            if (gasNode != null && status.getMq5().getRaw() != null) {
+                readings.add(reading(gasNode.getNodeId(), SensorType.METHANE, status.getMq5().getRaw()));
+            }
+        }
+
+        if (readings.isEmpty()) {
+            throw new BadRequestException("ESP returned no valid sensor readings");
+        }
+
+        batch.setReadings(readings);
+        iotDataService.ingestBatch(batch);
+    }
+
+    private void ingestStatusJson(Long plantId, String chipId, List<SensorNode> nodes, JsonNode status) {
+        Map<SensorType, SensorNode> byType = nodes.stream()
+                .collect(Collectors.toMap(SensorNode::getSensorType, Function.identity(), (a, b) -> a));
+
+        IoTBatchRequest batch = new IoTBatchRequest();
+        batch.setPlantId(plantId);
         batch.setChipId(chipId);
         if (status.has("rssi") && !status.get("rssi").isNull()) {
             batch.setRssi(status.get("rssi").asInt());
