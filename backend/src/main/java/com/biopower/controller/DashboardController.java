@@ -40,10 +40,11 @@ public class DashboardController {
             @PathVariable Long plantId,
             @RequestParam(required = false) SensorType sensorType,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @AuthenticationPrincipal UserPrincipal principal) {
         List<SensorReadingResponse> data = sensorType != null
-                ? analyticsService.getHistoricalData(plantId, sensorType, start, end)
-                : analyticsService.getAllSensorData(plantId, start, end);
+                ? analyticsService.getHistoricalData(plantId, sensorType, start, end, principal)
+                : analyticsService.getAllSensorData(plantId, start, end, principal);
         return ResponseEntity.ok(ApiResponse.success(data));
     }
 
@@ -72,8 +73,9 @@ public class DashboardController {
 
     @GetMapping("/ai/recommendations/{plantId}")
     public ResponseEntity<ApiResponse<List<AiRecommendationResponse>>> getRecommendations(
-            @PathVariable Long plantId) {
-        return ResponseEntity.ok(ApiResponse.success(aiHealthService.getRecommendations(plantId)));
+            @PathVariable Long plantId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(ApiResponse.success(aiHealthService.getRecommendations(plantId, principal)));
     }
 
     @PatchMapping("/ai/recommendations/{id}/acknowledge")

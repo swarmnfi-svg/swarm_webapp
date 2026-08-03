@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_title">Sign in to NOVA Chat</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Sign in</string>
+    <string name="inbox_title">Inbox</string>
+    <string name="settings_title">Settings</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_clear">Clear chat</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="settings_open_erp">Open full emPOWER</string>
+    <string name="settings_organisation">Organisation</string>
+    <string name="settings_version">Version</string>
+    <string name="reports_title">My reports</string>
+</resources>

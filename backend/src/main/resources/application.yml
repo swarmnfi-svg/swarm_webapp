@@ -61,6 +61,21 @@ biopower:
     sensor-timeout-minutes: 10
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:5173,https://localhost,capacitor://localhost}
+  nova-space-op:
+    enabled: ${NOVA_SPACE_OP_ENABLED:true}
+    llm:
+      base-url: ${NOVA_LLM_BASE_URL:https://api.openai.com/v1}
+      api-key: ${NOVA_LLM_API_KEY:}
+      model: ${NOVA_LLM_MODEL:gpt-4o-mini}
+    think:
+      enabled: ${NOVA_THINK_ENABLED:true}
+      confidence-threshold: 0.65
+    narrate:
+      enabled: ${NOVA_NARRATE_ENABLED:true}
+
+# Nova LLM keys — set via environment (see backend/.env.example). Never commit real keys.
+# GROQ_API_KEY, GROQ_API_KEY_2..4, OPENROUTER_API_KEY..4, GEMINI_API_KEY, GEMINI_API_KEY_2
+# NOVA_GROQ_MODEL, NOVA_OPENROUTER_MODEL, NOVA_GEMINI_MODEL
 
 logging:
   level:

@@ -4,6 +4,7 @@ import com.biopower.dto.response.PredictiveMaintenanceResponse;
 import com.biopower.model.entity.PredictiveMaintenance;
 import com.biopower.model.enums.EquipmentType;
 import com.biopower.repository.PredictiveMaintenanceRepository;
+import com.biopower.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,13 @@ import java.util.stream.Collectors;
 public class PredictiveMaintenanceService {
 
     private final PredictiveMaintenanceRepository repository;
+    private final PlantAccessService plantAccessService;
+
+    @Transactional(readOnly = true)
+    public List<PredictiveMaintenanceResponse> getByPlant(Long plantId, UserPrincipal principal) {
+        plantAccessService.assertCanAccessPlant(principal, plantId);
+        return getByPlant(plantId);
+    }
 
     @Transactional(readOnly = true)
     public List<PredictiveMaintenanceResponse> getByPlant(Long plantId) {

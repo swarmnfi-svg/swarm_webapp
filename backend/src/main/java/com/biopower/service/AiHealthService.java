@@ -103,6 +103,13 @@ public class AiHealthService {
     }
 
     @Transactional(readOnly = true)
+    public List<AiRecommendationResponse> getRecommendations(Long plantId, UserPrincipal principal) {
+        plantAccessService.assertCanAccessPlant(principal, plantId);
+        return aiRecommendationRepository.findByPlantIdOrderByCreatedAtDesc(plantId).stream()
+                .map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<AiRecommendationResponse> getRecommendations(Long plantId) {
         return aiRecommendationRepository.findByPlantIdOrderByCreatedAtDesc(plantId).stream()
                 .map(this::toResponse).collect(Collectors.toList());

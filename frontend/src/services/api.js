@@ -116,4 +116,11 @@ export const hmiAPI = {
   sendMaster: (plantId, body) => api.post(`/hmi/${plantId}/master`, body),
 };
 
+export const novaSpaceOpAPI = {
+  chat: (data) => api.post('/nova-space-op/chat', data),
+  listThreads: () => api.get('/nova-space-op/threads'),
+  getMessages: (threadId) => api.get(`/nova-space-op/threads/${threadId}/messages`),
+  clearThread: (threadId) => api.post(`/nova-space-op/threads/${threadId}/clear`),
+};
+
 export default api;

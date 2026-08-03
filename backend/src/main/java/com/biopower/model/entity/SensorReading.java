@@ -33,7 +33,7 @@ public class SensorReading {
     @Column(name = "sensor_type", nullable = false)
     private SensorType sensorType;
 
-    @Column(name = "sensor_value", nullable = false)
+    @Column(name = "value", nullable = false)
     private Double value;
 
     @Column(name = "recorded_at", nullable = false)

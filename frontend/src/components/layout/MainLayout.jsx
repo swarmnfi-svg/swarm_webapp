@@ -7,13 +7,14 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon, Dashboard, Factory, Sensors, ShowChart,
-  Notifications as NotifIcon, Psychology, Build, Assessment,
+  Notifications as NotifIcon,   Psychology, Build, Assessment,
   People, Settings, Logout, Password, BluetoothConnected, MenuBook,
-  PrecisionManufacturing,
+  PrecisionManufacturing, SmartToy,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { notificationAPI } from '../../services/api';
 import Logo from '../common/Logo';
+import NovaOpFab from '../nova/NovaOpFab';
 
 const DRAWER_WIDTH = 260;
 const NAV_BG = '#1e2430';
@@ -26,6 +27,7 @@ const menuItems = [
   { text: 'Connect Device', icon: <BluetoothConnected />, path: '/connect-device', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Analytics', icon: <ShowChart />, path: '/analytics', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Alerts', icon: <NotifIcon />, path: '/alerts', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
+  { text: 'NOVA OP', icon: <SmartToy />, path: '/nova-space-op', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'AI Recommendations', icon: <Psychology />, path: '/ai', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Maintenance', icon: <Build />, path: '/maintenance', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
   { text: 'Reports', icon: <Assessment />, path: '/reports', roles: ['SUPER_ADMIN', 'PLANT_ADMIN', 'OPERATOR'] },
@@ -234,6 +236,7 @@ export default function MainLayout() {
           </Typography>
         </Box>
       </Box>
+      <NovaOpFab userRole={user?.role} firstName={user?.name} />
     </Box>
   );
 }

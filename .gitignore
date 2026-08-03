@@ -8,6 +8,7 @@ build/
 .env
 .env.local
 *.env
+backend/.env
 frontend/.env.production
 
 # IDE
@@ -31,3 +32,7 @@ mysql_data/
 
 # Local H2 database files
 backend/data/
+
+# NOVA reference packs (integrated into app; keep out of git)
+nova-op-swarm-pack-*.zip
+NOVA_OP_SWARM_PACK/

@@ -1,0 +1,38 @@
+{"id":"QI-01","query":"tasks in avaada","expectEntity":true,"expectTools":["tasks_summary","project_command"],"forbidOrgWideScoped":true}
+{"id":"QI-02","query":"Avaada project task","expectEntity":true,"expectTools":["tasks_summary","project_command"],"forbidOrgWideScoped":true}
+{"id":"QI-03","query":"avaada tasks","expectEntity":true,"expectTools":["tasks_summary","project_command"],"forbidOrgWideScoped":true}
+{"id":"QI-04","query":"avaada project","expectEntity":true,"expectTools":["project_command","search_entities"],"forbidOrgWideScoped":true}
+{"id":"QI-05","query":"james school project task","expectEntity":true,"expectTools":["tasks_summary","project_command"],"forbidOrgWideScoped":true}
+{"id":"QI-06","query":"aalok tasks","expectEntity":true,"expectTools":["tasks_summary"],"expectPersonPath":true}
+{"id":"QI-07","query":"Avaada invoices","expectEntity":true,"expectTools":["sales_summary"],"forbidOrgWideScoped":true}
+{"id":"QI-09","query":"why are avaada tasks overdue","expectEntity":true,"expectTools":["nova_analysis"],"forbidOrgWideScoped":true}
+{"id":"QI-10","query":"late task completion trend for avaada","expectEntity":true,"expectTools":["nova_trend"],"forbidOrgWideScoped":true}
+{"id":"QI-H1","query":"avaada ka task","expectEntity":true,"expectTools":["tasks_summary","project_command"],"forbidOrgWideScoped":true}
+{"id":"QI-R1","query":"who completed most task","expectRanking":true,"expectTools":["tasks_summary"],"forbidEntity":true}
+{"id":"QI-R2","query":"who completed most tasks","expectRanking":true,"expectTools":["tasks_summary"],"forbidEntity":true}
+{"id":"QI-R3","query":"who completed the most tasks","expectRanking":true,"expectTools":["tasks_summary"],"forbidEntity":true}
+{"id":"QI-P1","query":"which tasks for arif is over due","expectStaffKind":true,"expectPersonHint":true,"expectTools":["tasks_summary"],"forbidPartyClarify":true}
+{"id":"QI-P2","query":"which tasks for arif is overdue","expectStaffKind":true,"expectPersonHint":true,"expectTools":["tasks_summary"],"forbidPartyClarify":true}
+{"id":"QI-P3","query":"Arif pending tasks","expectPersonPath":true,"expectPersonHint":true,"expectTools":["tasks_summary"]}
+{"id":"QI-P4","query":"arif open tasks","expectPersonPath":true,"expectPersonHint":true,"expectTools":["tasks_summary"]}
+{"id":"QI-P5","query":"tasks for arif","expectStaffKind":true,"expectPersonHint":true,"expectTools":["tasks_summary"],"forbidPartyClarify":true}
+{"id":"QI-P6","query":"show me Arif overdue tasks","expectPersonPath":true,"expectPersonHint":true,"expectTools":["tasks_summary"]}
+{"id":"QI-P7","query":"does Arif have overdue tasks","expectPersonPath":true,"expectPersonHint":true,"expectTools":["tasks_summary"]}
+{"id":"QI-P8","query":"Arif ka pending tasks","expectPersonPath":true,"expectPersonHint":true,"expectTools":["tasks_summary"]}
+{"id":"QI-P9","query":"pending for Arif","expectStaffKind":true,"expectPersonHint":true,"expectPersonPath":true,"expectTools":["tasks_summary"],"forbidPartyClarify":true}
+{"id":"QI-P10","query":"open for Arif","expectStaffKind":true,"expectPersonHint":true,"expectPersonPath":true,"expectTools":["tasks_summary"],"forbidPartyClarify":true}
+{"id":"QI-M1","query":"james school tasks","expectEntity":true,"expectTools":["tasks_summary"],"forbidOrgWideScoped":true}
+{"id":"QI-M2","query":"james school invoices","expectEntity":true,"expectTools":["sales_summary"],"forbidOrgWideScoped":true}
+{"id":"QI-M3","query":"james school outstanding","expectEntity":true,"expectTools":["receivables_summary","customer_outstanding","overdue_invoices"],"forbidOrgWideScoped":true}
+{"id":"QI-A1","query":"why Avaada tasks overdue","expectEntity":true,"expectTools":["nova_analysis"],"forbidOrgWideScoped":true}
+{"id":"QI-A2","query":"why are James School tasks overdue","expectEntity":true,"expectTools":["nova_analysis"],"forbidOrgWideScoped":true}
+{"id":"QI-A3","query":"why are these Avaada tasks overdue","expectEntity":true,"expectTools":["nova_analysis"],"forbidOrgWideScoped":true}
+{"id":"QI-SF1","query":"which staff requested most advance","expectTools":["staff_advances_summary"],"forbidEntity":true}
+{"id":"QI-SF2","query":"staff advance pending settlement","expectTools":["staff_advances_summary"],"forbidEntity":true}
+{"id":"QI-SF3","query":"who claimed most reimbursement","expectTools":["staff_expense_summary"],"forbidEntity":true}
+{"id":"QI-SF4","query":"which staff spends more money","expectTools":["staff_expense_summary"],"forbidEntity":true}
+{"id":"QI-SF5","query":"employee expense trend","expectTools":["nova_trend"],"forbidEntity":true}
+{"id":"QI-P11","query":"aalok pending tasks","expectPersonPath":true,"expectPersonHint":true,"expectTools":["tasks_summary"]}
+{"id":"QI-C1","query":"payment requests pending","forbidEntity":true,"expectTools":["payment_requests_summary"]}
+{"id":"QI-C2","query":"july sales","forbidEntity":true,"expectTools":["sales_summary"]}
+{"id":"QI-C3","query":"many invoices","forbidEntity":true,"expectTools":["sales_summary"]}

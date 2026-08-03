@@ -22,9 +22,19 @@ public class SensorTypeColumnMigration implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        dropLegacySensorValueColumn();
         migrateNotNull("sensor_nodes");
         migrateNotNull("sensor_readings");
         migrateNullable("alerts");
+    }
+
+    private void dropLegacySensorValueColumn() {
+        try {
+            jdbcTemplate.execute("ALTER TABLE sensor_readings DROP COLUMN sensor_value");
+            log.info("Dropped legacy sensor_readings.sensor_value column");
+        } catch (Exception e) {
+            log.debug("Skip sensor_readings.sensor_value drop: {}", e.getMessage());
+        }
     }
 
     private void migrateNotNull(String table) {

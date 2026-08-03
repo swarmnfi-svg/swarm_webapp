@@ -66,6 +66,24 @@ IDENTITY_MODE=saas
 SAAS_ACCOUNTS_URL=https://accounts.empowerapp.in
 SAAS_CLIENT_ID=swarm_webapp
 SAAS_APP_URL=https://app.swarm.co.in
+
+# Nova Space OP — LLM provider failover (set in Railway, never commit values)
+NOVA_SPACE_OP_ENABLED=true
+NOVA_THINK_ENABLED=true
+NOVA_NARRATE_ENABLED=true
+GROQ_API_KEY=
+GROQ_API_KEY_2=
+GROQ_API_KEY_3=
+GROQ_API_KEY_4=
+OPENROUTER_API_KEY=
+OPENROUTER_API_KEY_2=
+OPENROUTER_API_KEY_3=
+OPENROUTER_API_KEY_4=
+GEMINI_API_KEY=
+GEMINI_API_KEY_2=
+NOVA_GROQ_MODEL=llama-3.3-70b-versatile
+NOVA_OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct
+NOVA_GEMINI_MODEL=gemini-2.0-flash
 ```
 
 ### swarm_webapp service
