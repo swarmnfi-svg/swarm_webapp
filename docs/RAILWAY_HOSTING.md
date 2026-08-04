@@ -113,6 +113,15 @@ The web app and APK call the backend API directly (no nginx `/api` proxy).
 
 With `JAVA_TOOL_OPTIONS` and `SPRING_PROFILES_ACTIVE=prod`, the backend JVM is capped at 384 MB heap inside the container.
 
+### Raspberry Pi primary (standby partner)
+
+When RPi is the live primary, Railway runs as **standby**. See:
+
+- [RPi_PRIMARY_RUNBOOK.md](RPi_PRIMARY_RUNBOOK.md) — Pi setup, tunnel, hourly sync
+- [CLOUDFLARE_FAILOVER.md](CLOUDFLARE_FAILOVER.md) — 10s health checks and failover pools
+- `docker-compose.rpi.yml` — arm64 primary stack
+- `scripts/sync-to-railway.sh` — hourly mysqldump to Railway
+
 ---
 
 ## Deploy workflow
