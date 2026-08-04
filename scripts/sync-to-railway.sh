@@ -101,6 +101,7 @@ else
     --user="${DB_USER}" \
     --password="${DB_PASSWORD}" \
     --single-transaction \
+    --no-tablespaces \
     --routines \
     --triggers \
     "${DB_NAME}" | gzip > "${DUMP_FILE}"
@@ -124,6 +125,7 @@ else
     --port="${RAILWAY_MYSQL_PORT}" \
     --user="${RAILWAY_MYSQL_USER}" \
     --password="${RAILWAY_MYSQL_PASSWORD}" \
+    --skip-ssl \
     "${RAILWAY_MYSQL_DATABASE}"
   log "Railway restore complete"
 fi

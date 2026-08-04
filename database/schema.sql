@@ -162,8 +162,8 @@ CREATE TABLE IF NOT EXISTS hmi_equipment (
     plant_id BIGINT NOT NULL,
     tag_no VARCHAR(32) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    zone VARCHAR(32) NOT NULL,
-    equipment_kind VARCHAR(32) NOT NULL,
+    zone ENUM('feed_prep','pretreatment','feed_to_digester','digestion','gas_handling','effluent') NOT NULL,
+    equipment_kind ENUM('tank','pump','conveyor','crusher','agitator','heater','digester','moisture_trap','balloon','scrubber','generator','flare','filter_press','etp','drying_bed','hopper','level_transmitter','level_switch','flow_transmitter','pressure_transmitter','temperature_transmitter','analyzer','pressure_safety_valve','solenoid_valve','diff_pressure_transmitter') NOT NULL,
     controllable BOOLEAN NOT NULL DEFAULT FALSE,
     sensor_node_id BIGINT NULL,
     sequence_order INT,
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS hmi_equipment_state (
     equipment_id BIGINT NOT NULL,
     powered BOOLEAN NOT NULL DEFAULT FALSE,
     running BOOLEAN NOT NULL DEFAULT FALSE,
-    mode VARCHAR(16) NOT NULL DEFAULT 'OFF',
+    mode ENUM('auto','manual','off') NOT NULL DEFAULT 'off',
     last_changed_by BIGINT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_hmi_state_plant_equipment (plant_id, equipment_id),
@@ -198,4 +198,24 @@ CREATE TABLE IF NOT EXISTS hmi_plant_state (
     last_changed_by BIGINT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (plant_id) REFERENCES plants(plant_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS nova_threads (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(255),
+    sticky_plant_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS nova_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    thread_id BIGINT NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    content TEXT NOT NULL,
+    tools_used VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (thread_id) REFERENCES nova_threads(id) ON DELETE CASCADE
 );
