@@ -72,6 +72,7 @@ SWARM_PUBLIC_API_URL=https://backend-production-a841.up.railway.app/api
 JAVA_TOOL_OPTIONS=-XX:+UseContainerSupport -Xms128m -Xmx384m
 SPRING_PROFILES_ACTIVE=prod
 SWARM_DEPLOYMENT_ROLE=standby
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
 SENSOR_RETENTION_DAYS=30
 AI_RECOMMENDATION_RETENTION_DAYS=30
 AI_RECOMMENDATION_MAX_PER_PLANT=100
@@ -113,7 +114,26 @@ The web app and APK call the backend API directly (no nginx `/api` proxy).
 
 With `JAVA_TOOL_OPTIONS` and `SPRING_PROFILES_ACTIVE=prod`, the backend JVM is capped at 384 MB heap inside the container.
 
-### Raspberry Pi primary (standby partner)
+### Railway backend crashed?
+
+If deploy logs show `Schema-validation` or Hibernate errors after enabling `prod` profile:
+
+1. Set `SPRING_JPA_HIBERNATE_DDL_AUTO=update` on the **backend** service (not only shared vars).
+2. Confirm **DB_HOST**, **DB_PASSWORD**, **JWT_SECRET** exist on backend.
+3. Restart backend deployment.
+
+Required backend DB variables (from MySQL service):
+
+```env
+DB_HOST=mysql.railway.internal
+DB_PORT=3306
+DB_NAME=railway
+DB_USER=root
+DB_PASSWORD=<MYSQLPASSWORD from MySQL service>
+JWT_SECRET=<same as Pi>
+```
+
+---
 
 When RPi is the live primary, Railway runs as **standby**. See:
 
