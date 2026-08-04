@@ -12,8 +12,14 @@ import {
   PrecisionManufacturing, ArrowForward,
 } from '@mui/icons-material';
 import { plantAPI, dashboardAPI, alertAPI, deviceAPI, hmiAPI } from '../services/api';
+import { fetchEspStatus } from '../utils/espClient';
 import { SENSOR_LABELS, SENSOR_UNITS, getHealthColor, formatDate } from '../utils/constants';
 import { pageHeaderRow, pageTitleSx, responsiveSelect } from '../utils/responsive';
+
+/** How often the dashboard refreshes from the server (ms). */
+const DASHBOARD_POLL_MS = 10000;
+/** When on same LAN as ESP, pull live readings from the hub this often (ms). */
+const LAN_ESP_SYNC_MS = 10000;
 
 const sensorIcons = {
   PH: <Opacity />, TEMPERATURE: <Thermostat />, TEMPERATURE_TRANSMITTER: <Thermostat />,
@@ -57,7 +63,40 @@ export default function Dashboard() {
   useEffect(() => {
     if (!selectedPlant) return;
     fetchData();
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, DASHBOARD_POLL_MS);
+    return () => clearInterval(interval);
+  }, [selectedPlant]);
+
+  // Same-LAN fast path: browser pulls ESP directly, then pushes readings to SWARM.
+  useEffect(() => {
+    if (!selectedPlant) return undefined;
+    const creds = JSON.parse(sessionStorage.getItem('espCreds') || '{}');
+    if (!creds.password) return undefined;
+
+    const syncFromLan = async () => {
+      const ip = creds.ip;
+      if (!ip || !creds.chipId) return;
+      try {
+        const status = await fetchEspStatus(ip, creds.password);
+        await deviceAPI.syncReadings({
+          ip,
+          password: creds.password,
+          plantId: selectedPlant,
+          chipId: creds.chipId,
+          status: {
+            dht: status.dht,
+            mq5: status.mq5,
+            rssi: status.rssi,
+          },
+        });
+        dashboardAPI.getDashboard(selectedPlant).then(({ data }) => setDashboard(data.data));
+      } catch {
+        /* ESP unreachable from this browser — cloud ingest still applies */
+      }
+    };
+
+    syncFromLan();
+    const interval = setInterval(syncFromLan, LAN_ESP_SYNC_MS);
     return () => clearInterval(interval);
   }, [selectedPlant]);
 
@@ -71,15 +110,21 @@ export default function Dashboard() {
     }
     setSyncingChip(device.chipId);
     try {
+      const status = await fetchEspStatus(ip, password);
       await deviceAPI.syncReadings({
         ip,
         password,
         plantId: device.plantId || selectedPlant,
         chipId: device.chipId,
+        status: {
+          dht: status.dht,
+          mq5: status.mq5,
+          rssi: status.rssi,
+        },
       });
       fetchData();
     } catch (e) {
-      window.alert(e.response?.data?.message || 'Failed to sync readings from ESP');
+      window.alert(e.response?.data?.message || e.message || 'Failed to sync readings from ESP');
     } finally {
       setSyncingChip('');
     }

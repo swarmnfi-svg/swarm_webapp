@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+
+logging:
+  level:
+    com.biopower: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN

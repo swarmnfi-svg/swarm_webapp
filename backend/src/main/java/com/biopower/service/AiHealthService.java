@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AiHealthService {
 
+    private static final int SCORE_CHANGE_THRESHOLD = 5;
+    private static final int MIN_MINUTES_BETWEEN_RECOMMENDATIONS = 15;
+
     private final AiRecommendationRepository aiRecommendationRepository;
     private final SensorReadingRepository sensorReadingRepository;
     private final AlertRepository alertRepository;
@@ -87,6 +90,10 @@ public class AiHealthService {
         HealthStatus healthStatus = resolveHealthStatus(score);
 
         if (!recommendations.isEmpty() || score < 90) {
+            if (!shouldPersistRecommendation(plantId, score)) {
+                return;
+            }
+
             String combined = recommendations.isEmpty()
                     ? "Plant operating within normal parameters. Continue routine monitoring."
                     : String.join(" ", recommendations);
@@ -100,6 +107,19 @@ public class AiHealthService {
                     .build();
             aiRecommendationRepository.save(rec);
         }
+    }
+
+    private boolean shouldPersistRecommendation(Long plantId, int score) {
+        return aiRecommendationRepository.findFirstByPlantIdOrderByCreatedAtDesc(plantId)
+                .map(last -> {
+                    boolean scoreChangedEnough = last.getHealthScore() == null
+                            || Math.abs(score - last.getHealthScore()) >= SCORE_CHANGE_THRESHOLD;
+                    boolean enoughTimeElapsed = last.getCreatedAt() == null
+                            || last.getCreatedAt().isBefore(
+                                    LocalDateTime.now().minusMinutes(MIN_MINUTES_BETWEEN_RECOMMENDATIONS));
+                    return scoreChangedEnough || enoughTimeElapsed;
+                })
+                .orElse(true);
     }
 
     @Transactional(readOnly = true)

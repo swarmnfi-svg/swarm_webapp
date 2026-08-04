@@ -68,6 +68,15 @@ SAAS_CLIENT_ID=swarm_webapp
 SAAS_APP_URL=https://app.swarm.co.in
 SWARM_PUBLIC_API_URL=https://backend-production-a841.up.railway.app/api
 
+# Production profile + Railway standby (RPi-primary architecture)
+JAVA_TOOL_OPTIONS=-XX:+UseContainerSupport -Xms128m -Xmx384m
+SPRING_PROFILES_ACTIVE=prod
+SWARM_DEPLOYMENT_ROLE=standby
+SENSOR_RETENTION_DAYS=30
+AI_RECOMMENDATION_RETENTION_DAYS=30
+AI_RECOMMENDATION_MAX_PER_PLANT=100
+NOVA_MESSAGE_RETENTION_DAYS=90
+
 # Nova Space OP — LLM provider failover (set in Railway, never commit values)
 NOVA_SPACE_OP_ENABLED=true
 NOVA_THINK_ENABLED=true
@@ -94,6 +103,15 @@ VITE_API_URL=https://backend-production-a841.up.railway.app/api
 ```
 
 The web app and APK call the backend API directly (no nginx `/api` proxy).
+
+### Recommended memory limits (Railway standby)
+
+| Service | Limit |
+|---------|-------|
+| **backend** | 512 MB |
+| **swarm_webapp** (frontend) | 256 MB |
+
+With `JAVA_TOOL_OPTIONS` and `SPRING_PROFILES_ACTIVE=prod`, the backend JVM is capped at 384 MB heap inside the container.
 
 ---
 

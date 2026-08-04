@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,8 @@ public interface AiRecommendationRepository extends JpaRepository<AiRecommendati
     @Modifying
     @Query("DELETE FROM AiRecommendation r WHERE r.plantId = :plantId")
     void deleteByPlantId(@Param("plantId") Long plantId);
+
+    @Modifying
+    @Query("DELETE FROM AiRecommendation r WHERE r.createdAt < :cutoff")
+    int deleteByCreatedAtBefore(@Param("cutoff") LocalDateTime cutoff);
 }

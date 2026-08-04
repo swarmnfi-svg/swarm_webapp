@@ -72,4 +72,8 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
     @Modifying
     @Query("DELETE FROM SensorReading r WHERE r.plantId = :plantId")
     void deleteByPlantId(@Param("plantId") Long plantId);
+
+    @Modifying
+    @Query("DELETE FROM SensorReading r WHERE r.recordedAt < :cutoff")
+    int deleteByRecordedAtBefore(@Param("cutoff") LocalDateTime cutoff);
 }

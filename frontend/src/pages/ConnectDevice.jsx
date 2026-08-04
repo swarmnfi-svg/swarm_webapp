@@ -314,7 +314,7 @@ export default function ConnectDevice() {
             Chip {pairResult.chipId} · Temperature node: {pairResult.temperatureNodeId} · Humidity: {pairResult.humidityNodeId} · Gas: {pairResult.gasNodeId}
           </Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            ESP will send data every 30 seconds. Assign sensors in User Management if needed.
+            ESP will send data every 10 seconds. Assign sensors in User Management if needed.
           </Typography>
           <Button sx={{ mt: 2 }} variant="outlined" onClick={goToDashboard}>
             Go to Dashboard

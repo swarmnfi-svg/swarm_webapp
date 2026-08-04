@@ -3,7 +3,7 @@
  *
  * Features:
  * - /info, /api/status, /setup, /swarm/configure
- * - Sends data to SWARM /api/iot/batch every 30s
+ * - Sends data to SWARM /api/iot/batch every 10s
  * - Password via /setup or DEVICE_PASSWORD default
  */
 
@@ -32,7 +32,7 @@ const char* DEVICE_UNIQUE_ID = "SWARM-ESP-001";
 
 // ---------- Timing ----------
 #define SENSOR_INTERVAL_MS 5000
-#define SWARM_INTERVAL_MS 30000
+#define SWARM_INTERVAL_MS 10000
 #define EEPROM_SIZE 512
 #define EEPROM_MAGIC 0xCD
 
@@ -480,6 +480,11 @@ void setup() {
   server.begin();
 
   readSensors();
+
+  if (swarmCfg.configured && WiFi.status() == WL_CONNECTED) {
+    sendToSwarm();
+    lastSwarmSend = millis();
+  }
 
   Serial.println("ESP ready");
   Serial.println("Chip ID: " + chipId());

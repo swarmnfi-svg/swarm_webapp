@@ -9,6 +9,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 # Railway injects PORT — Spring Boot reads SERVER_PORT from application.yml
 ENV SERVER_PORT=8080
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -Xms128m -Xmx384m"
 EXPOSE 8080
 # Railway injects PORT; SERVER_PORT optional override for other hosts
 ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-${SERVER_PORT:-8080}}"]

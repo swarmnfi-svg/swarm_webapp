@@ -8,6 +8,7 @@ import com.biopower.dto.response.HmiHotspotResponse;
 import com.biopower.dto.response.HmiStateResponse;
 import com.biopower.exception.BadRequestException;
 import com.biopower.exception.ResourceNotFoundException;
+import com.biopower.config.DeploymentRoleProperties;
 import com.biopower.model.entity.*;
 import com.biopower.model.enums.AlertStatus;
 import com.biopower.model.enums.HmiControlMode;
@@ -39,6 +40,7 @@ public class HmiService {
     private final AlertRepository alertRepository;
     private final PlantAccessService plantAccessService;
     private final HmiPlantSetupService hmiPlantSetupService;
+    private final DeploymentRoleProperties deploymentRole;
 
     @Transactional(readOnly = true)
     public HmiDiagramResponse getDiagram(Long plantId, UserPrincipal principal) {
@@ -277,6 +279,9 @@ public class HmiService {
     @Scheduled(fixedDelay = 3000)
     @Transactional
     public void tickAutoSequence() {
+        if (!deploymentRole.isPrimary()) {
+            return;
+        }
         plantStateRepository.findAll().stream()
                 .filter(HmiPlantState::isAutoSequenceActive)
                 .filter(HmiPlantState::isPlantPowered)
