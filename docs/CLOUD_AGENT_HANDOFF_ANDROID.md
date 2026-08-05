@@ -1,8 +1,10 @@
 # Cloud agent handoff — SWARM Android (Capacitor)
 
-**Status:** Production plan phases 0–4 implemented on branch `cursor/android-production-capacitor-b5fd`  
+**Status:** Production plan phases 0–4 implemented; debug APK built  
 **App ID:** `com.nanofarm.swarm`  
-**API:** `https://api.swarm.co.in/api`
+**Package:** Capacitor 6 Android app (`frontend/android/`)  
+**API:** `https://api.swarm.co.in/api`  
+**Installable APK:** `releases/SWARM-debug.apk` (also `frontend/android/app/build/outputs/apk/debug/app-debug.apk`)
 
 ## Done
 
