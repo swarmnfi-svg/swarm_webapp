@@ -46,7 +46,7 @@ public class AuthController {
     @PostMapping("/sso/callback")
     public ResponseEntity<ApiResponse<AuthResponse>> ssoCallback(
             @Valid @RequestBody SsoCallbackRequest request) {
-        boolean nativeClient = Boolean.TRUE.equals(request.getNative());
+        boolean nativeClient = Boolean.TRUE.equals(request.getNativeClient());
         return ResponseEntity.ok(ApiResponse.success(
                 "SSO login successful", authService.exchangeSsoCode(request.getCode(), nativeClient)));
     }

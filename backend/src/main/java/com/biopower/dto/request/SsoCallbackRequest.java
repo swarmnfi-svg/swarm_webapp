@@ -1,5 +1,6 @@
 package com.biopower.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -9,5 +10,6 @@ public class SsoCallbackRequest {
     private String code;
 
     /** When true, token exchange uses the Android deep-link redirect_uri. */
-    private Boolean native;
+    @JsonProperty("native")
+    private Boolean nativeClient;
 }

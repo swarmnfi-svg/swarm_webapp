@@ -9,6 +9,7 @@ Type=oneshot
 RemainAfterExit=yes
 User=swarm
 Group=swarm
+SupplementaryGroups=docker
 WorkingDirectory=/home/swarm/swarm_webapp
 EnvironmentFile=-/home/swarm/swarm_webapp/.env.rpi
 ExecStart=/usr/bin/docker compose -f docker-compose.rpi.yml --env-file .env.rpi up -d --remove-orphans
