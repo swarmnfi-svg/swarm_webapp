@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const PRODUCTION_API = 'https://backend-production-a841.up.railway.app/api';
+const PRODUCTION_API = 'https://api.swarm.co.in/api';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? PRODUCTION_API : '/api'),
@@ -35,9 +35,16 @@ export const authAPI = {
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   changePassword: (data) => api.post('/auth/change-password', data),
   ssoConfig: () => api.get('/auth/sso/config'),
-  ssoLoginUrl: (returnTo) => api.get('/auth/sso/login-url', { params: { returnTo } }),
-  ssoSignupUrl: (returnTo) => api.get('/auth/sso/signup-url', { params: { returnTo } }),
-  ssoCallback: (code) => api.post('/auth/sso/callback', { code }),
+  ssoLoginUrl: (returnTo, native = false) => api.get('/auth/sso/login-url', {
+    params: { returnTo, ...(native ? { native: true } : {}) },
+  }),
+  ssoSignupUrl: (returnTo, native = false) => api.get('/auth/sso/signup-url', {
+    params: { returnTo, ...(native ? { native: true } : {}) },
+  }),
+  ssoCallback: (code, native = false) => api.post('/auth/sso/callback', {
+    code,
+    ...(native ? { native: true } : {}),
+  }),
 };
 
 export const plantAPI = {

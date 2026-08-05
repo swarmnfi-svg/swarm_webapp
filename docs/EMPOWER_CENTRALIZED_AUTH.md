@@ -115,6 +115,7 @@ users.identity_user_id VARCHAR(36) UNIQUE  -- links to emPOWER SaaS user id
 2. Confirm exact JSON shape from `/api/oauth/token`
 3. Confirm app-picker card URL for SWARM
 4. Staging `accounts.empowerapp.in` access for integration test
+5. **Android deep-link redirect:** register `com.nanofarm.swarm://auth/callback` as an allowed OAuth `redirect_uri` for client `swarm_webapp` (required for Capacitor SSO)
 
 ---
 

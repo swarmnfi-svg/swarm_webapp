@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
@@ -8,6 +8,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
 import { networkErrorMessage } from '../utils/networkError';
+import { redirectToSso } from '../utils/sso';
 
 const O = {
   amber: '#FF9500',
@@ -43,8 +44,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const [forgotMode, setForgotMode] = useState(false);
   const [success, setSuccess] = useState('');
+  const [checkingSso, setCheckingSso] = useState(true);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    redirectToSso('login').catch(() => {}).finally(() => setCheckingSso(false));
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -79,6 +85,16 @@ export default function Login() {
       setError(err.response?.data?.message || 'Failed to send reset link');
     }
   };
+
+  if (checkingSso) {
+    return (
+      <Box sx={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: O.bg,
+      }}>
+        <CircularProgress sx={{ color: O.amber }} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{

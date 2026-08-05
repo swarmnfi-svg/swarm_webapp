@@ -31,21 +31,24 @@ public class AuthController {
 
     @GetMapping("/sso/login-url")
     public ResponseEntity<ApiResponse<String>> ssoLoginUrl(
-            @RequestParam(required = false) String returnTo) {
-        return ResponseEntity.ok(ApiResponse.success(authService.buildSsoUrl("login", returnTo)));
+            @RequestParam(required = false) String returnTo,
+            @RequestParam(name = "native", required = false, defaultValue = "false") boolean nativeClient) {
+        return ResponseEntity.ok(ApiResponse.success(authService.buildSsoUrl("login", returnTo, nativeClient)));
     }
 
     @GetMapping("/sso/signup-url")
     public ResponseEntity<ApiResponse<String>> ssoSignupUrl(
-            @RequestParam(required = false) String returnTo) {
-        return ResponseEntity.ok(ApiResponse.success(authService.buildSsoUrl("signup", returnTo)));
+            @RequestParam(required = false) String returnTo,
+            @RequestParam(name = "native", required = false, defaultValue = "false") boolean nativeClient) {
+        return ResponseEntity.ok(ApiResponse.success(authService.buildSsoUrl("signup", returnTo, nativeClient)));
     }
 
     @PostMapping("/sso/callback")
     public ResponseEntity<ApiResponse<AuthResponse>> ssoCallback(
             @Valid @RequestBody SsoCallbackRequest request) {
+        boolean nativeClient = Boolean.TRUE.equals(request.getNative());
         return ResponseEntity.ok(ApiResponse.success(
-                "SSO login successful", authService.exchangeSsoCode(request.getCode())));
+                "SSO login successful", authService.exchangeSsoCode(request.getCode(), nativeClient)));
     }
 
     @PostMapping("/login")

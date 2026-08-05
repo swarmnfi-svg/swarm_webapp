@@ -12,4 +12,6 @@ public class SsoConfigResponse {
     private String clientId;
     private String appUrl;
     private String callbackPath;
+    /** Android deep-link redirect_uri (must be registered with emPOWER). */
+    private String nativeCallbackUri;
 }

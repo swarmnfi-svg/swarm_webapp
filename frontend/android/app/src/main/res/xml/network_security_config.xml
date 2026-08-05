@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP for ESP32 / IoT Connect Device pairing on private LAN.
+  Android domain-config cannot express CIDR ranges, so cleartext is permitted
+  at base level for arbitrary 192.168.x.x / 10.x / 172.16–31.x device IPs.
+  Production API traffic remains HTTPS (api.swarm.co.in).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

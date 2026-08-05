@@ -49,22 +49,23 @@ public class AuthService {
                 .clientId(saasAuthProperties.getClientId())
                 .appUrl(saasAuthProperties.getAppUrl())
                 .callbackPath("/auth/callback")
+                .nativeCallbackUri(EmpowerSaaSAuthClient.NATIVE_CALLBACK_URI)
                 .build();
     }
 
-    public String buildSsoUrl(String flow, String returnTo) {
+    public String buildSsoUrl(String flow, String returnTo, boolean nativeClient) {
         if (!identityProperties.isSaasMode()) {
             throw new BadRequestException("SaaS identity mode is not enabled");
         }
-        return empowerSaaSAuthClient.buildAuthorizeUrl(flow, returnTo);
+        return empowerSaaSAuthClient.buildAuthorizeUrl(flow, returnTo, nativeClient);
     }
 
     @Transactional
-    public AuthResponse exchangeSsoCode(String code) {
+    public AuthResponse exchangeSsoCode(String code, boolean nativeClient) {
         if (!identityProperties.isSaasMode()) {
             throw new BadRequestException("SaaS identity mode is not enabled");
         }
-        SaaSIdentityProfile profile = empowerSaaSAuthClient.exchangeAuthCode(code);
+        SaaSIdentityProfile profile = empowerSaaSAuthClient.exchangeAuthCode(code, nativeClient);
         User user = provisionLocalUserFromSaaS(profile);
         UserPrincipal principal = UserPrincipal.create(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(

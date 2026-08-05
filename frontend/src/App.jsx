@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
 import Login from './pages/Login';
@@ -20,6 +21,7 @@ import ChangePassword from './pages/ChangePassword';
 import Help from './pages/Help';
 import NovaSpaceOp from './pages/NovaSpaceOp';
 import PlantHmi from './pages/PlantHmi';
+import { isNativeApp } from './utils/networkError';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user } = useAuth();
@@ -30,6 +32,58 @@ const ProtectedRoute = ({ children, roles }) => {
 
 function App() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isNativeApp()) return undefined;
+
+    let backHandle;
+    let urlHandle;
+
+    (async () => {
+      const { App: CapApp } = await import('@capacitor/app');
+
+      backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack || window.history.length > 1) {
+          window.history.back();
+        } else {
+          CapApp.exitApp();
+        }
+      });
+
+      urlHandle = await CapApp.addListener('appUrlOpen', async ({ url }) => {
+        try {
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.close().catch(() => {});
+        } catch {
+          /* Browser plugin may be unavailable */
+        }
+
+        try {
+          const parsed = new URL(url);
+          const isSsoCallback =
+            parsed.protocol === 'com.nanofarm.swarm:'
+            && parsed.hostname === 'auth'
+            && parsed.pathname.startsWith('/callback');
+          if (!isSsoCallback) return;
+
+          const code = parsed.searchParams.get('code');
+          const error = parsed.searchParams.get('error');
+          const qs = new URLSearchParams();
+          if (code) qs.set('code', code);
+          if (error) qs.set('error', error);
+          navigate(`/auth/callback?${qs.toString()}`, { replace: true });
+        } catch {
+          /* ignore malformed deep links */
+        }
+      });
+    })();
+
+    return () => {
+      backHandle?.remove();
+      urlHandle?.remove();
+    };
+  }, [navigate]);
 
   return (
     <Routes>
