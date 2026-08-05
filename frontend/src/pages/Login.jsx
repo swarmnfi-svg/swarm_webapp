@@ -8,7 +8,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
 import { networkErrorMessage } from '../utils/networkError';
-import { redirectToSso } from '../utils/sso';
+import { loadSsoConfig, redirectToSso } from '../utils/sso';
 
 const O = {
   amber: '#FF9500',
@@ -45,12 +45,28 @@ export default function Login() {
   const [forgotMode, setForgotMode] = useState(false);
   const [success, setSuccess] = useState('');
   const [checkingSso, setCheckingSso] = useState(true);
+  const [ssoAvailable, setSsoAvailable] = useState(false);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    redirectToSso('login').catch(() => {}).finally(() => setCheckingSso(false));
+    loadSsoConfig()
+      .then((config) => setSsoAvailable(!!config?.saasEnabled))
+      .catch(() => {})
+      .finally(() => setCheckingSso(false));
   }, []);
+
+  const handleEmpowerSignIn = async () => {
+    setError('');
+    try {
+      const redirected = await redirectToSso('login');
+      if (!redirected) {
+        setError('emPOWER sign-in is not available. Use email and password below.');
+      }
+    } catch {
+      setError('Unable to start emPOWER sign-in. Use email and password below.');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -145,6 +161,24 @@ export default function Login() {
 
           {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
           {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{success}</Alert>}
+
+          {!forgotMode && ssoAvailable && (
+            <>
+              <Button
+                fullWidth variant="outlined" size="large" onClick={handleEmpowerSignIn}
+                sx={{
+                  py: 1.5, borderRadius: 2, fontWeight: 600, textTransform: 'none',
+                  color: O.text, borderColor: O.border,
+                  '&:hover': { borderColor: O.amber, bgcolor: 'rgba(255,149,0,0.08)' },
+                }}
+              >
+                Sign in with emPOWER account
+              </Button>
+              <Divider sx={{ my: 2.5, borderColor: O.border }}>
+                <Typography variant="caption" sx={{ color: O.muted }}>or</Typography>
+              </Divider>
+            </>
+          )}
 
           <form onSubmit={forgotMode ? handleForgot : handleLogin}>
             <TextField

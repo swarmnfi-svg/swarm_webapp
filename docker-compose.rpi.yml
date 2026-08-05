@@ -42,7 +42,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env.rpi}
       MQTT_ENABLED: "false"
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,https://app.swarm.co.in,capacitor://localhost}
-      IDENTITY_MODE: ${IDENTITY_MODE:-saas}
+      IDENTITY_MODE: ${IDENTITY_MODE:-local}
       SAAS_ACCOUNTS_URL: ${SAAS_ACCOUNTS_URL:-https://accounts.empowerapp.in}
       SAAS_CLIENT_ID: ${SAAS_CLIENT_ID:-swarm_webapp}
       SAAS_APP_URL: ${SAAS_APP_URL:-https://app.swarm.co.in}

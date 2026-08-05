@@ -8,7 +8,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
 import { networkErrorMessage } from '../utils/networkError';
-import { redirectToSso } from '../utils/sso';
+import { loadSsoConfig, redirectToSso } from '../utils/sso';
 
 const O = {
   amber: '#FF9500',
@@ -45,12 +45,28 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [checkingSso, setCheckingSso] = useState(true);
+  const [ssoAvailable, setSsoAvailable] = useState(false);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    redirectToSso('signup').catch(() => {}).finally(() => setCheckingSso(false));
+    loadSsoConfig()
+      .then((config) => setSsoAvailable(!!config?.saasEnabled))
+      .catch(() => {})
+      .finally(() => setCheckingSso(false));
   }, []);
+
+  const handleEmpowerSignUp = async () => {
+    setError('');
+    try {
+      const redirected = await redirectToSso('signup');
+      if (!redirected) {
+        setError('emPOWER sign-up is not available. Use the form below.');
+      }
+    } catch {
+      setError('Unable to start emPOWER sign-up. Use the form below.');
+    }
+  };
 
   const updateField = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -139,6 +155,24 @@ export default function Signup() {
           </Typography>
 
           {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+
+          {ssoAvailable && (
+            <>
+              <Button
+                fullWidth variant="outlined" size="large" onClick={handleEmpowerSignUp}
+                sx={{
+                  py: 1.5, borderRadius: 2, fontWeight: 600, textTransform: 'none',
+                  color: O.text, borderColor: O.border,
+                  '&:hover': { borderColor: O.amber, bgcolor: 'rgba(255,149,0,0.08)' },
+                }}
+              >
+                Sign up with emPOWER account
+              </Button>
+              <Divider sx={{ my: 2.5, borderColor: O.border }}>
+                <Typography variant="caption" sx={{ color: O.muted }}>or</Typography>
+              </Divider>
+            </>
+          )}
 
           <form onSubmit={handleSubmit}>
             <TextField
