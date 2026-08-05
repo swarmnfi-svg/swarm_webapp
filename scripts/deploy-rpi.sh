@@ -16,6 +16,7 @@ cd "$REPO_DIR"
 REMOTE="${SWARM_GIT_REMOTE:-swarm}"
 BRANCH="${SWARM_GIT_BRANCH:-main}"
 COMPOSE_FILE="${SWARM_COMPOSE_FILE:-docker-compose.rpi.yml}"
+ENV_FILE="${SWARM_ENV_FILE:-.env.rpi}"
 FORCE=false
 PULL_ONLY=false
 
@@ -57,13 +58,14 @@ if [[ ! -f "$COMPOSE_FILE" ]]; then
   exit 1
 fi
 
-if [[ ! -f .env.rpi ]]; then
-  log "WARN: .env.rpi missing — copy from .env.rpi.example before first deploy."
+if [[ ! -f "$ENV_FILE" ]]; then
+  log "ERROR: $ENV_FILE missing — copy from .env.rpi.example and set JWT_SECRET, SWARM_PUBLIC_API_URL, VITE_API_URL."
+  exit 1
 fi
 
-log "Rebuilding containers ($COMPOSE_FILE)..."
-docker compose -f "$COMPOSE_FILE" build --pull
-docker compose -f "$COMPOSE_FILE" up -d
+log "Rebuilding containers ($COMPOSE_FILE) with $ENV_FILE..."
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" build --pull
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
 log "Deploy complete. Health:"
 curl -sf "http://localhost:${BACKEND_HOST_PORT:-8080}/api/health" || log "WARN: backend health check failed"
