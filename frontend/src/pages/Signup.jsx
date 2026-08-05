@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
@@ -8,6 +8,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/common/Logo';
 import { networkErrorMessage } from '../utils/networkError';
+import { redirectToSso } from '../utils/sso';
 
 const O = {
   amber: '#FF9500',
@@ -43,8 +44,13 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [checkingSso, setCheckingSso] = useState(true);
   const { signup, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    redirectToSso('signup').catch(() => {}).finally(() => setCheckingSso(false));
+  }, []);
 
   const updateField = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -82,6 +88,16 @@ export default function Signup() {
       }
     }
   };
+
+  if (checkingSso) {
+    return (
+      <Box sx={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: O.bg,
+      }}>
+        <CircularProgress sx={{ color: O.amber }} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{

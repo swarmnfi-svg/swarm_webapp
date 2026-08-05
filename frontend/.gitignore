@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.env.production
 .env.production.local
 android/.gradle/
 android/app/build/
@@ -7,3 +8,6 @@ android/build/
 android/local.properties
 *.apk
 *.aab
+*.jks
+*.keystore
+keystore.properties

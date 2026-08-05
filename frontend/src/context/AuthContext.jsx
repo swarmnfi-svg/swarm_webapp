@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { authAPI } from '../services/api';
+import { isNativeApp } from '../utils/networkError';
 
 const AuthContext = createContext(null);
 
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   const loginWithSsoCode = useCallback(async (code) => {
     setLoading(true);
     try {
-      const { data } = await authAPI.ssoCallback(code);
+      const { data } = await authAPI.ssoCallback(code, isNativeApp());
       const authData = data.data;
       localStorage.setItem('token', authData.token);
       return persistUser(toUserData(authData));

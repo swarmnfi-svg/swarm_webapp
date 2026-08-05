@@ -2,6 +2,10 @@
 
 The mobile app is the **same React web app** wrapped in a native Android WebView via [Capacitor](https://capacitorjs.com/). No UI/UX changes — phone and tablet use the existing responsive layouts.
 
+**App ID:** `com.nanofarm.swarm`  
+**Display name:** SWARM  
+**Production API:** `https://api.swarm.co.in/api`
+
 ---
 
 ## Prerequisites
@@ -29,23 +33,23 @@ Capacitor is already configured in `capacitor.config.json`. The Android project 
 
 ## Configure backend URL
 
-The APK talks to your **deployed** API (not localhost).
+The APK talks to the **production** API.
 
-Edit `frontend/.env.production`:
+Copy the example env file (`.env.production` is gitignored — never commit it):
 
-```env
-VITE_API_URL=https://rare-passion-production-fc1a.up.railway.app/api
+```powershell
+copy .env.production.example .env.production
 ```
 
-Use your production backend URL if different.
-
-**Railway backend:** add `https://localhost` to `CORS_ORIGINS` (required for Capacitor WebView):
-
 ```env
-CORS_ORIGINS=https://swarmwebapp-production.up.railway.app,https://localhost
+VITE_API_URL=https://api.swarm.co.in/api
 ```
 
-Redeploy backend after updating CORS.
+**Backend CORS** must include Capacitor WebView origins (already enforced in `SecurityConfig`):
+
+```env
+CORS_ORIGINS=https://app.swarm.co.in,https://localhost,capacitor://localhost
+```
 
 ---
 
@@ -68,6 +72,34 @@ Copy to phone (USB, email, or cloud) and install. Enable “Install unknown apps
 
 ## Build release APK (Play Store / distribution)
 
+### Option A — CLI (cross-platform)
+
+1. Create a keystore (one-time; **do not commit** `*.jks` / `*.keystore`):
+
+   ```powershell
+   keytool -genkey -v -keystore swarm-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias swarm
+   ```
+
+2. Create `frontend/android/keystore.properties` (gitignored):
+
+   ```properties
+   storeFile=../../swarm-release.jks
+   storePassword=YOUR_STORE_PASSWORD
+   keyAlias=swarm
+   keyPassword=YOUR_KEY_PASSWORD
+   ```
+
+3. Wire signing in `android/app/build.gradle` (when ready for Play Store) via `signingConfigs.release` reading `keystore.properties`, then:
+
+   ```powershell
+   npm run android:release
+   ```
+
+   **Output:** `frontend/android/app/build/outputs/apk/release/app-release.apk`  
+   (Unsigned until `signingConfigs` are configured — then a signed release APK.)
+
+### Option B — Android Studio
+
 1. Open Android Studio:
 
    ```powershell
@@ -88,7 +120,26 @@ Whenever you change the React app:
 npm run build:android
 ```
 
-Then rebuild APK (`npm run android:apk` or Android Studio).
+Then rebuild APK (`npm run android:apk`, `npm run android:release`, or Android Studio).
+
+---
+
+## Mobile SSO (emPOWER)
+
+When `IDENTITY_MODE=saas`, Login/Signup auto-redirect to emPOWER.
+
+| Platform | Behavior |
+|----------|----------|
+| Web | Full-page redirect to `accounts.empowerapp.in` → `/auth/callback` |
+| Android | `@capacitor/browser` opens SaaS; return via deep link `com.nanofarm.swarm://auth/callback` |
+
+**Blocker:** emPOWER must register `com.nanofarm.swarm://auth/callback` as an allowed OAuth `redirect_uri` for client `swarm_webapp`. Until then, native SSO authorize/token exchange will fail with invalid redirect.
+
+---
+
+## ESP / IoT cleartext (Connect Device)
+
+`network_security_config.xml` permits cleartext HTTP to private LAN IPs so the WebView can reach ESP devices on `192.168.x.x` / `10.x` / `172.16–31.x` during pairing. Production API remains HTTPS.
 
 ---
 
@@ -97,6 +148,7 @@ Then rebuild APK (`npm run android:apk` or Android Studio).
 - Same APK for phones and tablets
 - Existing responsive CSS (`responsive.css`, MUI breakpoints) handles layout
 - Plant HMI maximize and Connect Device stepper already support mobile
+- Hardware back button: history back, or exit app at root
 
 ---
 
@@ -105,8 +157,10 @@ Then rebuild APK (`npm run android:apk` or Android Studio).
 | Issue | Fix |
 |-------|-----|
 | Login fails / network error | Check `VITE_API_URL` in `.env.production` and rebuild |
-| CORS error in app | Add `https://localhost` to backend `CORS_ORIGINS` |
-| `gradlew` not found | Run from `frontend/android` or use `npm run android:apk` |
+| CORS error in app | Ensure backend includes `https://localhost` and `capacitor://localhost` |
+| Native SSO fails after login | Confirm emPOWER registered `com.nanofarm.swarm://auth/callback` |
+| ESP pairing cleartext blocked | Confirm `network_security_config.xml` is linked in `AndroidManifest` |
+| `gradlew` not found | Use `npm run android:apk` (picks `gradlew` / `gradlew.bat`) |
 | SDK not found | Install Android Studio; set `ANDROID_HOME` |
 | White screen | Run `npm run build:android` then rebuild APK |
 
@@ -117,9 +171,17 @@ Then rebuild APK (`npm run android:apk` or Android Studio).
 | File | Purpose |
 |------|---------|
 | `capacitor.config.json` | App id, name, web bundle dir |
-| `.env.production` | API URL baked into APK at build time |
+| `.env.production` | API URL baked into APK (gitignored) |
+| `.env.production.example` | Template for production API URL |
 | `android/` | Native Android project (Gradle) |
-| `package.json` scripts | `build:android`, `android:apk` |
+| `android/.../network_security_config.xml` | LAN cleartext for ESP |
+| `package.json` scripts | `build:android`, `android:apk`, `android:release` |
 
-**App ID:** `com.nanofarm.swarm`  
-**Display name:** SWARM
+**npm scripts**
+
+| Script | Purpose |
+|--------|---------|
+| `build:android` | Vite production build + `cap sync android` |
+| `android:apk` | Debug APK (Windows/Linux/macOS) |
+| `android:release` | Release APK assemble (cross-platform) |
+| `cap:open:android` | Open project in Android Studio |

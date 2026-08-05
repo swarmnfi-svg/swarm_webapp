@@ -25,12 +25,15 @@ import java.util.Map;
 @Slf4j
 public class EmpowerSaaSAuthClient {
 
+    /** Must be registered with emPOWER as an allowed OAuth redirect_uri for the SWARM Android app. */
+    public static final String NATIVE_CALLBACK_URI = "com.nanofarm.swarm://auth/callback";
+
     private final EmpowerSaaSAuthProperties props;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String buildAuthorizeUrl(String flow, String returnTo) {
-        String redirectUri = callbackUrl();
+    public String buildAuthorizeUrl(String flow, String returnTo, boolean nativeClient) {
+        String redirectUri = callbackUrl(nativeClient);
         StringBuilder url = new StringBuilder(props.getAccountsUrl())
                 .append("/").append(flow)
                 .append("?client_id=").append(enc(props.getClientId()))
@@ -43,11 +46,18 @@ public class EmpowerSaaSAuthClient {
     }
 
     public String callbackUrl() {
+        return callbackUrl(false);
+    }
+
+    public String callbackUrl(boolean nativeClient) {
+        if (nativeClient) {
+            return NATIVE_CALLBACK_URI;
+        }
         String base = props.getAppUrl().replaceAll("/$", "");
         return base + "/auth/callback";
     }
 
-    public SaaSIdentityProfile exchangeAuthCode(String code) {
+    public SaaSIdentityProfile exchangeAuthCode(String code, boolean nativeClient) {
         if (props.getClientSecret() == null || props.getClientSecret().isBlank()) {
             throw new BadRequestException(
                     "SWARM SaaS client secret not configured. Set biopower.identity.saas.client-secret.");
@@ -60,7 +70,7 @@ public class EmpowerSaaSAuthClient {
                 "code", code,
                 "client_id", props.getClientId(),
                 "client_secret", props.getClientSecret(),
-                "redirect_uri", callbackUrl()
+                "redirect_uri", callbackUrl(nativeClient)
         );
         try {
             ResponseEntity<String> response = restTemplate.exchange(

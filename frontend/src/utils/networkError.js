@@ -11,7 +11,7 @@ export function isNativeApp() {
 export function networkErrorMessage(err) {
   if (err?.response) return null;
   if (isNativeApp()) {
-    const api = import.meta.env.VITE_API_URL || 'https://backend-production-a841.up.railway.app/api';
+    const api = import.meta.env.VITE_API_URL || 'https://api.swarm.co.in/api';
     return 'Cannot reach the server. Check mobile internet (Wi-Fi or mobile data) and try again. '
       + `API: ${api}`;
   }
