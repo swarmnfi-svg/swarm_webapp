@@ -1,0 +1,19 @@
+[Unit]
+Description=SWARM primary stack (MySQL + backend + frontend)
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=swarm
+Group=swarm
+WorkingDirectory=/home/swarm/swarm_webapp
+EnvironmentFile=-/home/swarm/swarm_webapp/.env.rpi
+ExecStart=/usr/bin/docker compose -f docker-compose.rpi.yml --env-file .env.rpi up -d --remove-orphans
+ExecStop=/usr/bin/docker compose -f docker-compose.rpi.yml --env-file .env.rpi down
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target
