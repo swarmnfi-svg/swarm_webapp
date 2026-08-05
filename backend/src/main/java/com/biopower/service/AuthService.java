@@ -42,9 +42,12 @@ public class AuthService {
     private final EmpowerSaaSAuthClient empowerSaaSAuthClient;
 
     public SsoConfigResponse getSsoConfig() {
+        boolean saasReady = identityProperties.isSaasMode()
+                && saasAuthProperties.getClientSecret() != null
+                && !saasAuthProperties.getClientSecret().isBlank();
         return SsoConfigResponse.builder()
                 .mode(identityProperties.getMode())
-                .saasEnabled(identityProperties.isSaasMode())
+                .saasEnabled(saasReady)
                 .accountsUrl(saasAuthProperties.getAccountsUrl())
                 .clientId(saasAuthProperties.getClientId())
                 .appUrl(saasAuthProperties.getAppUrl())
