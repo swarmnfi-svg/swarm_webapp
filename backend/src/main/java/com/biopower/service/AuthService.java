@@ -42,12 +42,9 @@ public class AuthService {
     private final EmpowerSaaSAuthClient empowerSaaSAuthClient;
 
     public SsoConfigResponse getSsoConfig() {
-        boolean saasReady = identityProperties.isSaasMode()
-                && saasAuthProperties.getClientSecret() != null
-                && !saasAuthProperties.getClientSecret().isBlank();
         return SsoConfigResponse.builder()
                 .mode(identityProperties.getMode())
-                .saasEnabled(saasReady)
+                .saasEnabled(isSaasFullyConfigured())
                 .accountsUrl(saasAuthProperties.getAccountsUrl())
                 .clientId(saasAuthProperties.getClientId())
                 .appUrl(saasAuthProperties.getAppUrl())
@@ -57,7 +54,7 @@ public class AuthService {
     }
 
     public String buildSsoUrl(String flow, String returnTo, boolean nativeClient) {
-        if (!identityProperties.isSaasMode()) {
+        if (!isSaasFullyConfigured()) {
             throw new BadRequestException("SaaS identity mode is not enabled");
         }
         return empowerSaaSAuthClient.buildAuthorizeUrl(flow, returnTo, nativeClient);
@@ -65,7 +62,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse exchangeSsoCode(String code, boolean nativeClient) {
-        if (!identityProperties.isSaasMode()) {
+        if (!isSaasFullyConfigured()) {
             throw new BadRequestException("SaaS identity mode is not enabled");
         }
         SaaSIdentityProfile profile = empowerSaaSAuthClient.exchangeAuthCode(code, nativeClient);
@@ -109,7 +106,7 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        if (identityProperties.isSaasMode()) {
+        if (isSaasFullyConfigured()) {
             throw new BadRequestException("Use emPOWER SaaS login at accounts.empowerapp.in");
         }
         Authentication authentication = authenticationManager.authenticate(
@@ -119,7 +116,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse signup(SignupRequest request) {
-        if (identityProperties.isSaasMode()) {
+        if (isSaasFullyConfigured()) {
             throw new BadRequestException("Use emPOWER SaaS signup at accounts.empowerapp.in");
         }
         String email = request.getEmail().trim();
@@ -184,7 +181,7 @@ public class AuthService {
 
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
-        if (identityProperties.isSaasMode()) {
+        if (isSaasFullyConfigured()) {
             throw new BadRequestException("Change password at accounts.empowerapp.in");
         }
         User user = userRepository.findById(userId)
@@ -194,5 +191,15 @@ public class AuthService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+    /**
+     * SWARM local auth (biopower_db users table) is the default.
+     * emPOWER SSO only activates when IDENTITY_MODE=saas AND SAAS_CLIENT_SECRET is set.
+     */
+    private boolean isSaasFullyConfigured() {
+        return identityProperties.isSaasMode()
+                && saasAuthProperties.getClientSecret() != null
+                && !saasAuthProperties.getClientSecret().isBlank();
     }
 }
