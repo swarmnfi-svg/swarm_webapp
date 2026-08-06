@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS hmi_equipment_state (
     equipment_id BIGINT NOT NULL,
     powered BOOLEAN NOT NULL DEFAULT FALSE,
     running BOOLEAN NOT NULL DEFAULT FALSE,
-    mode ENUM('auto','manual','off') NOT NULL DEFAULT 'off',
+    mode VARCHAR(32) NOT NULL DEFAULT 'OFF',
     last_changed_by BIGINT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_hmi_state_plant_equipment (plant_id, equipment_id),

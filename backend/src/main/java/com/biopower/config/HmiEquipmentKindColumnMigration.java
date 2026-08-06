@@ -24,6 +24,7 @@ public class HmiEquipmentKindColumnMigration implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         migrateColumn("hmi_equipment", "equipment_kind", 64, false);
         migrateColumn("hmi_equipment", "zone", 64, false);
+        migrateColumn("hmi_equipment_state", "mode", 32, false);
     }
 
     private void migrateColumn(String table, String column, int length, boolean nullable) {

@@ -3,7 +3,9 @@ package com.biopower.model.entity;
 import com.biopower.model.enums.HmiControlMode;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -34,6 +36,7 @@ public class HmiEquipmentState {
     private boolean running = false;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Builder.Default
     private HmiControlMode mode = HmiControlMode.OFF;
 
